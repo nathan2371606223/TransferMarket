@@ -3,7 +3,7 @@ import { fetchApplications, updateApplication, approveApplication, rejectApplica
 
 function ApplicationList({ token }) {
   const [applications, setApplications] = useState([]);
-  const [statusFilter, setStatusFilter] = useState("");
+  const [statusFilter, setStatusFilter] = useState("pending"); // Default to pending only
   const [loading, setLoading] = useState(false);
   const [editingId, setEditingId] = useState(null);
   const [editData, setEditData] = useState({});
@@ -31,7 +31,20 @@ function ApplicationList({ token }) {
       const result = await approveApplication(token, id);
       setMessage({ type: "success", text: result.message || "已批准" });
       if (result.formatted) {
-        alert(`已批准。格式化记录（可复制到预算模块）：\n${result.formatted}`);
+        // Show formatted record in a more visible way
+        const formattedText = result.formatted;
+        const userConfirmed = confirm(
+          `已批准！\n\n格式化记录（可复制到预算模块）：\n\n${formattedText}\n\n\n点击"确定"复制到剪贴板，或"取消"仅查看。`
+        );
+        if (userConfirmed && navigator.clipboard) {
+          navigator.clipboard.writeText(formattedText).then(() => {
+            alert("已复制到剪贴板！");
+          }).catch(() => {
+            // Clipboard API failed, just show the text
+          });
+        }
+      } else {
+        console.warn("No formatted record returned:", result);
       }
       loadApplications();
     } catch (err) {
@@ -87,11 +100,14 @@ function ApplicationList({ token }) {
       <div style={{ marginBottom: "20px" }}>
         <label>状态筛选：</label>
         <select value={statusFilter} onChange={(e) => setStatusFilter(e.target.value)}>
-          <option value="">全部</option>
           <option value="pending">待处理</option>
+          <option value="">全部</option>
           <option value="approved">已批准</option>
           <option value="rejected">已拒绝</option>
         </select>
+        <span style={{ marginLeft: "10px", color: "#666", fontSize: "14px" }}>
+          （已批准/拒绝的申请可在历史管理页面查看）
+        </span>
       </div>
 
       {message.text && (
