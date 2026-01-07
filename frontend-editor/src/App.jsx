@@ -4,12 +4,14 @@ import ChangePassword from "./components/ChangePassword";
 import ApplicationList from "./components/ApplicationList";
 import HistoryManager from "./components/HistoryManager";
 import ExportButtons from "./components/ExportButtons";
+import FormattedRecords from "./components/FormattedRecords";
 
 function App() {
   const [token, setToken] = useState(null);
   const [activeTab, setActiveTab] = useState("applications");
   const [showChangePassword, setShowChangePassword] = useState(false);
   const [message, setMessage] = useState("");
+  const [formattedRecords, setFormattedRecords] = useState([]);
 
   useEffect(() => {
     const savedToken = localStorage.getItem("token");
@@ -108,7 +110,20 @@ function App() {
         </div>
       )}
 
-      {activeTab === "applications" && <ApplicationList token={token} />}
+      {activeTab === "applications" && (
+        <>
+          <ApplicationList 
+            token={token} 
+            onApproval={(formatted, application) => {
+              setFormattedRecords([...formattedRecords, { formatted, application, timestamp: new Date() }]);
+            }}
+          />
+          <FormattedRecords 
+            records={formattedRecords} 
+            onClear={() => setFormattedRecords([])}
+          />
+        </>
+      )}
       {activeTab === "history" && (
         <>
           <ExportButtons token={token} onAction={setMessage} />

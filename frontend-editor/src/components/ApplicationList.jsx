@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { fetchApplications, updateApplication, approveApplication, rejectApplication } from "../services/api";
 
-function ApplicationList({ token }) {
+function ApplicationList({ token, onApproval }) {
   const [applications, setApplications] = useState([]);
   const [statusFilter, setStatusFilter] = useState("pending"); // Default to pending only
   const [loading, setLoading] = useState(false);
@@ -30,21 +30,12 @@ function ApplicationList({ token }) {
     try {
       const result = await approveApplication(token, id);
       setMessage({ type: "success", text: result.message || "已批准" });
-      if (result.formatted) {
-        // Show formatted record in a more visible way
-        const formattedText = result.formatted;
-        const userConfirmed = confirm(
-          `已批准！\n\n格式化记录（可复制到预算模块）：\n\n${formattedText}\n\n\n点击"确定"复制到剪贴板，或"取消"仅查看。`
-        );
-        if (userConfirmed && navigator.clipboard) {
-          navigator.clipboard.writeText(formattedText).then(() => {
-            alert("已复制到剪贴板！");
-          }).catch(() => {
-            // Clipboard API failed, just show the text
-          });
-        }
-      } else {
-        console.warn("No formatted record returned:", result);
+      if (result.formatted && onApproval) {
+        // Add formatted record to the list instead of showing popup
+        onApproval(result.formatted, result.application);
+      } else if (result.formatted) {
+        // Fallback: show popup if onApproval callback is not provided
+        alert(`已批准！\n\n格式化记录：\n${result.formatted}`);
       }
       loadApplications();
     } catch (err) {
