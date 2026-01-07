@@ -124,11 +124,11 @@ function ApplicationList({ token, onApproval }) {
               <th style={{ border: "1px solid #ddd", padding: "8px" }}>ID</th>
               <th style={{ border: "1px solid #ddd", padding: "8px" }}>球员1</th>
               <th style={{ border: "1px solid #ddd", padding: "8px" }}>球员2</th>
-              <th style={{ border: "1px solid #ddd", padding: "8px" }}>球员3</th>
-              <th style={{ border: "1px solid #ddd", padding: "8px" }}>球员4</th>
               <th style={{ border: "1px solid #ddd", padding: "8px" }}>转出球队</th>
               <th style={{ border: "1px solid #ddd", padding: "8px" }}>转入球队</th>
               <th style={{ border: "1px solid #ddd", padding: "8px" }}>价格</th>
+              <th style={{ border: "1px solid #ddd", padding: "8px" }}>球员3</th>
+              <th style={{ border: "1px solid #ddd", padding: "8px" }}>球员4</th>
               <th style={{ border: "1px solid #ddd", padding: "8px" }}>备注</th>
               <th style={{ border: "1px solid #ddd", padding: "8px" }}>状态</th>
               <th style={{ border: "1px solid #ddd", padding: "8px" }}>操作</th>
@@ -228,11 +228,11 @@ function ApplicationList({ token, onApproval }) {
                   <td style={{ border: "1px solid #ddd", padding: "8px" }}>{app.id}</td>
                   <td style={{ border: "1px solid #ddd", padding: "8px" }}>{app.player1 || ""}</td>
                   <td style={{ border: "1px solid #ddd", padding: "8px" }}>{app.player2 || ""}</td>
-                  <td style={{ border: "1px solid #ddd", padding: "8px" }}>{app.player3 || ""}</td>
-                  <td style={{ border: "1px solid #ddd", padding: "8px" }}>{app.player4 || ""}</td>
                   <td style={{ border: "1px solid #ddd", padding: "8px" }}>{app.team_out || ""}</td>
                   <td style={{ border: "1px solid #ddd", padding: "8px" }}>{app.team_in || ""}</td>
                   <td style={{ border: "1px solid #ddd", padding: "8px" }}>{app.price || ""}</td>
+                  <td style={{ border: "1px solid #ddd", padding: "8px" }}>{app.player3 || ""}</td>
+                  <td style={{ border: "1px solid #ddd", padding: "8px" }}>{app.player4 || ""}</td>
                   <td style={{ border: "1px solid #ddd", padding: "8px" }}>{app.remarks || ""}</td>
                   <td style={{ border: "1px solid #ddd", padding: "8px" }}>{app.status || ""}</td>
                   <td style={{ border: "1px solid #ddd", padding: "8px" }}>
