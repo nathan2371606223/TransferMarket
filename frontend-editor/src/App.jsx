@@ -11,7 +11,26 @@ function App() {
   const [activeTab, setActiveTab] = useState("applications");
   const [showChangePassword, setShowChangePassword] = useState(false);
   const [message, setMessage] = useState("");
-  const [formattedRecords, setFormattedRecords] = useState([]);
+  
+  // Load formatted records from localStorage on mount
+  const [formattedRecords, setFormattedRecords] = useState(() => {
+    try {
+      const stored = localStorage.getItem("formatted_records");
+      return stored ? JSON.parse(stored) : [];
+    } catch {
+      return [];
+    }
+  });
+  
+  // Save formatted records to localStorage whenever they change
+  const updateFormattedRecords = (records) => {
+    setFormattedRecords(records);
+    try {
+      localStorage.setItem("formatted_records", JSON.stringify(records));
+    } catch (err) {
+      console.error("Failed to save formatted records to localStorage", err);
+    }
+  };
 
   useEffect(() => {
     const savedToken = localStorage.getItem("token");
@@ -115,12 +134,13 @@ function App() {
           <ApplicationList 
             token={token} 
             onApproval={(formatted, application) => {
-              setFormattedRecords([...formattedRecords, { formatted, application, timestamp: new Date() }]);
+              const newRecords = [...formattedRecords, { formatted, application, timestamp: new Date().toISOString() }];
+              updateFormattedRecords(newRecords);
             }}
           />
           <FormattedRecords 
             records={formattedRecords} 
-            onClear={() => setFormattedRecords([])}
+            onClear={() => updateFormattedRecords([])}
           />
         </>
       )}
