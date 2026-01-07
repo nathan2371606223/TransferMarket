@@ -8,6 +8,10 @@ on:
     branches: [ main ]
   workflow_dispatch:
 
+concurrency:
+  group: gh-pages
+  cancel-in-progress: false
+
 jobs:
   build-and-deploy:
     runs-on: ubuntu-latest
@@ -34,4 +38,5 @@ jobs:
           destination_dir: visitor
           publish_branch: gh-pages
           keep_files: true
+          force_orphan: false
 
