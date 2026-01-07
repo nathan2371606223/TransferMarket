@@ -40,10 +40,14 @@ function MyApplications() {
 
   useEffect(() => {
     loadApplications();
-    // Refresh every 5 seconds to check for updates
-    const interval = setInterval(loadApplications, 5000);
+    // Refresh every 30 seconds to check for updates (only when not editing)
+    const interval = setInterval(() => {
+      if (!editingId) {
+        loadApplications();
+      }
+    }, 30000);
     return () => clearInterval(interval);
-  }, []);
+  }, [editingId]);
 
   const handleEdit = (app) => {
     setEditingId(app.id);

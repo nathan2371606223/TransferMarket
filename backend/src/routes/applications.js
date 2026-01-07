@@ -37,7 +37,8 @@ router.post("/", async (req, res) => {
     for (const app of applications) {
       const { player1, player2, player3, player4, team_out, team_in, price, remarks } = app;
 
-      if (!player1 || !team_out || !team_in || !price) {
+      // Check required fields (price can be 0, so check for null/undefined/empty string)
+      if (!player1 || !team_out || !team_in || price === undefined || price === null || price === "") {
         errors.push({ application: app, reason: "缺少必填字段" });
         continue;
       }
