@@ -32,8 +32,8 @@ router.post("/", async (req, res) => {
       }
 
       const priceNum = Number(price);
-      if (!Number.isFinite(priceNum) || priceNum <= 0) {
-        errors.push({ application: app, reason: "价格无效" });
+      if (!Number.isFinite(priceNum) || priceNum < 0) {
+        errors.push({ application: app, reason: "价格无效（必须为非负数）" });
         continue;
       }
 

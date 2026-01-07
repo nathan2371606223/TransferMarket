@@ -32,7 +32,7 @@ function ApplicationForm() {
     if (!app.team_in?.trim()) return "转入球队为必填项";
     if (!app.price?.trim()) return "价格为必填项";
     const priceNum = Number(app.price);
-    if (!Number.isFinite(priceNum) || priceNum <= 0) return "价格无效";
+    if (!Number.isFinite(priceNum) || priceNum < 0) return "价格无效（必须为非负数）";
     return null;
   };
 
