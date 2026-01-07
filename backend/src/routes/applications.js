@@ -73,13 +73,31 @@ router.post("/", async (req, res) => {
   }
 });
 
-// Get all applications - requires auth
-router.get("/", authMiddleware, async (req, res) => {
+// Get all applications - public endpoint for pending, requires auth for all
+router.get("/", async (req, res) => {
   const { status } = req.query;
   let query = "SELECT * FROM tm_transfer_applications";
   const params = [];
 
-  if (status) {
+  // If no auth token, only allow viewing pending applications
+  const header = req.headers.authorization || "";
+  const token = header.startsWith("Bearer ") ? header.substring(7) : null;
+  const isAuthenticated = token && (() => {
+    try {
+      const jwt = require("jsonwebtoken");
+      const JWT_SECRET = process.env.JWT_SECRET || "dev-secret";
+      jwt.verify(token, JWT_SECRET);
+      return true;
+    } catch {
+      return false;
+    }
+  })();
+
+  if (!isAuthenticated) {
+    // Public access: only pending applications
+    query += " WHERE status = 'pending'";
+  } else if (status) {
+    // Authenticated access: can filter by status
     query += " WHERE status = $1";
     params.push(status);
   }
@@ -95,12 +113,37 @@ router.get("/", authMiddleware, async (req, res) => {
   }
 });
 
-// Update application - requires auth
-router.put("/:id", authMiddleware, async (req, res) => {
+// Update application - public endpoint for pending applications, requires auth for others
+router.put("/:id", async (req, res) => {
   const id = Number(req.params.id);
   const { player1, player2, player3, player4, team_out, team_in, price, remarks } = req.body || {};
 
   try {
+    // Check if application exists and get its status
+    const { rows: existing } = await pool.query("SELECT * FROM tm_transfer_applications WHERE id=$1", [id]);
+    if (!existing.length) {
+      return res.status(404).json({ message: "申请未找到" });
+    }
+
+    // Check authentication
+    const header = req.headers.authorization || "";
+    const token = header.startsWith("Bearer ") ? header.substring(7) : null;
+    const isAuthenticated = token && (() => {
+      try {
+        const jwt = require("jsonwebtoken");
+        const JWT_SECRET = process.env.JWT_SECRET || "dev-secret";
+        jwt.verify(token, JWT_SECRET);
+        return true;
+      } catch {
+        return false;
+      }
+    })();
+
+    // Only allow public updates for pending applications
+    if (!isAuthenticated && existing[0].status !== "pending") {
+      return res.status(403).json({ message: "只能编辑待处理的申请" });
+    }
+
     const updates = [];
     const values = [];
     let paramIndex = 1;

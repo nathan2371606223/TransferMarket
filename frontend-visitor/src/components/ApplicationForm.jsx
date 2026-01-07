@@ -72,6 +72,15 @@ function ApplicationForm() {
         setMessage({ type: "warning", text: `检测到 ${result.duplicates} 条可能的重复申请，请确认后继续提交` });
       } else {
         setMessage({ type: "success", text: `成功提交 ${result.submitted} 条申请` });
+        
+        // Store submitted application IDs in localStorage
+        if (result.details && result.details.submitted) {
+          const myIds = JSON.parse(localStorage.getItem("my_application_ids") || "[]");
+          const newIds = result.details.submitted.map(app => app.id);
+          const updatedIds = [...new Set([...myIds, ...newIds])]; // Remove duplicates
+          localStorage.setItem("my_application_ids", JSON.stringify(updatedIds));
+        }
+        
         // Reset form
         setApplications([
           { player1: "", player2: "", player3: "", player4: "", team_out: "", team_in: "", price: "", remarks: "" }
@@ -102,6 +111,15 @@ function ApplicationForm() {
     try {
       const result = await submitApplications(data);
       setMessage({ type: "success", text: `成功提交 ${result.submitted} 条申请` });
+      
+      // Store submitted application IDs in localStorage
+      if (result.details && result.details.submitted) {
+        const myIds = JSON.parse(localStorage.getItem("my_application_ids") || "[]");
+        const newIds = result.details.submitted.map(app => app.id);
+        const updatedIds = [...new Set([...myIds, ...newIds])]; // Remove duplicates
+        localStorage.setItem("my_application_ids", JSON.stringify(updatedIds));
+      }
+      
       setDuplicateWarning(null);
       setApplications([
         { player1: "", player2: "", player3: "", player4: "", team_out: "", team_in: "", price: "", remarks: "" }

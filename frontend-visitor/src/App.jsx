@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import ApplicationForm from "./components/ApplicationForm";
 import HistoryViewer from "./components/HistoryViewer";
+import MyApplications from "./components/MyApplications";
 
 function App() {
   const [activeTab, setActiveTab] = useState("submit");
@@ -22,6 +23,18 @@ function App() {
             提交申请
           </button>
           <button
+            onClick={() => setActiveTab("my-applications")}
+            style={{
+              backgroundColor: activeTab === "my-applications" ? "#555" : "transparent",
+              color: "white",
+              border: "none",
+              padding: "10px 20px",
+              cursor: "pointer"
+            }}
+          >
+            我的申请
+          </button>
+          <button
             onClick={() => setActiveTab("history")}
             style={{
               backgroundColor: activeTab === "history" ? "#555" : "transparent",
@@ -37,6 +50,7 @@ function App() {
       </nav>
 
       {activeTab === "submit" && <ApplicationForm />}
+      {activeTab === "my-applications" && <MyApplications />}
       {activeTab === "history" && <HistoryViewer />}
     </div>
   );
