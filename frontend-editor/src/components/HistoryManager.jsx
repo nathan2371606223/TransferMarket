@@ -91,11 +91,11 @@ function HistoryManager({ token }) {
                 <th style={{ border: "1px solid #ddd", padding: "8px" }}>时间</th>
                 <th style={{ border: "1px solid #ddd", padding: "8px" }}>球员1</th>
                 <th style={{ border: "1px solid #ddd", padding: "8px" }}>球员2</th>
-                <th style={{ border: "1px solid #ddd", padding: "8px" }}>球员3</th>
-                <th style={{ border: "1px solid #ddd", padding: "8px" }}>球员4</th>
                 <th style={{ border: "1px solid #ddd", padding: "8px" }}>转出球队</th>
                 <th style={{ border: "1px solid #ddd", padding: "8px" }}>转入球队</th>
                 <th style={{ border: "1px solid #ddd", padding: "8px" }}>价格</th>
+                <th style={{ border: "1px solid #ddd", padding: "8px" }}>球员3</th>
+                <th style={{ border: "1px solid #ddd", padding: "8px" }}>球员4</th>
                 <th style={{ border: "1px solid #ddd", padding: "8px" }}>备注</th>
                 <th style={{ border: "1px solid #ddd", padding: "8px" }}>状态</th>
                 <th style={{ border: "1px solid #ddd", padding: "8px" }}>操作</th>
@@ -208,11 +208,11 @@ function HistoryManager({ token }) {
                     </td>
                     <td style={{ border: "1px solid #ddd", padding: "8px" }}>{record.player1 || ""}</td>
                     <td style={{ border: "1px solid #ddd", padding: "8px" }}>{record.player2 || ""}</td>
-                    <td style={{ border: "1px solid #ddd", padding: "8px" }}>{record.player3 || ""}</td>
-                    <td style={{ border: "1px solid #ddd", padding: "8px" }}>{record.player4 || ""}</td>
                     <td style={{ border: "1px solid #ddd", padding: "8px" }}>{record.team_out || ""}</td>
                     <td style={{ border: "1px solid #ddd", padding: "8px" }}>{record.team_in || ""}</td>
                     <td style={{ border: "1px solid #ddd", padding: "8px" }}>{record.price || ""}</td>
+                    <td style={{ border: "1px solid #ddd", padding: "8px" }}>{record.player3 || ""}</td>
+                    <td style={{ border: "1px solid #ddd", padding: "8px" }}>{record.player4 || ""}</td>
                     <td style={{ border: "1px solid #ddd", padding: "8px" }}>{record.remarks || ""}</td>
                     <td style={{ border: "1px solid #ddd", padding: "8px" }}>{record.status || ""}</td>
                     <td style={{ border: "1px solid #ddd", padding: "8px" }}>
