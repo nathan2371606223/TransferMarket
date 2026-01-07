@@ -7,7 +7,7 @@ const router = express.Router();
 
 // Get transfer history - public endpoint
 router.get("/", async (req, res) => {
-  const { page = 1, pageSize = 10, archived, status } = req.query;
+  const { page = 1, pageSize = 10, archived, status, team } = req.query;
   const pageNum = Number(page);
   const sizeNum = Number(pageSize);
   const offset = (pageNum - 1) * sizeNum;
@@ -25,6 +25,13 @@ router.get("/", async (req, res) => {
   if (status) {
     conditions.push(`status = $${paramIndex++}`);
     params.push(status);
+  }
+
+  // Filter by team (matches either team_out or team_in)
+  if (team) {
+    conditions.push(`(team_out = $${paramIndex} OR team_in = $${paramIndex})`);
+    params.push(team);
+    paramIndex++;
   }
 
   if (conditions.length > 0) {

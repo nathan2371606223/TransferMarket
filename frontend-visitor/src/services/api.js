@@ -17,8 +17,12 @@ export async function updateApplication(id, data) {
   return res.data;
 }
 
-export async function fetchHistory(page = 1, pageSize = 10) {
-  const res = await axios.get(`${API_BASE}/history`, { params: { page, pageSize } });
+export async function fetchHistory(page = 1, pageSize = 10, team = null) {
+  const params = { page, pageSize };
+  if (team) {
+    params.team = team;
+  }
+  const res = await axios.get(`${API_BASE}/history`, { params });
   return res.data;
 }
 

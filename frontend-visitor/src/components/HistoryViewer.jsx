@@ -1,21 +1,55 @@
 import React, { useState, useEffect } from "react";
-import { fetchHistory } from "../services/api";
+import { fetchHistory, fetchTeams } from "../services/api";
+import TeamSelector from "./TeamSelector";
 
 function HistoryViewer() {
   const [history, setHistory] = useState([]);
   const [page, setPage] = useState(1);
   const [total, setTotal] = useState(0);
   const [loading, setLoading] = useState(false);
+  const [teamsByLevel, setTeamsByLevel] = useState({});
+  const [loadingTeams, setLoadingTeams] = useState(true);
+  const [teamFilter, setTeamFilter] = useState("");
   const pageSize = 10;
+
+  // Load teams and filter from localStorage on mount
+  useEffect(() => {
+    const loadTeams = async () => {
+      try {
+        setLoadingTeams(true);
+        const data = await fetchTeams();
+        setTeamsByLevel(data);
+        // Load filter from localStorage
+        const savedFilter = localStorage.getItem("history_team_filter");
+        if (savedFilter) {
+          setTeamFilter(savedFilter);
+        }
+      } catch (err) {
+        console.error("Failed to load teams", err);
+      } finally {
+        setLoadingTeams(false);
+      }
+    };
+    loadTeams();
+  }, []);
 
   useEffect(() => {
     loadHistory();
-  }, [page]);
+  }, [page, teamFilter]);
+
+  // Save filter to localStorage when it changes
+  useEffect(() => {
+    if (teamFilter) {
+      localStorage.setItem("history_team_filter", teamFilter);
+    } else {
+      localStorage.removeItem("history_team_filter");
+    }
+  }, [teamFilter]);
 
   const loadHistory = async () => {
     setLoading(true);
     try {
-      const result = await fetchHistory(page, pageSize);
+      const result = await fetchHistory(page, pageSize, teamFilter || undefined);
       setHistory(result.data || []);
       setTotal(result.total || 0);
     } catch (err) {
@@ -25,11 +59,45 @@ function HistoryViewer() {
     }
   };
 
+  const handleFilterChange = (team) => {
+    setTeamFilter(team);
+    setPage(1); // Reset to first page when filter changes
+  };
+
+  const clearFilter = () => {
+    setTeamFilter("");
+    setPage(1);
+  };
+
   const totalPages = Math.ceil(total / pageSize);
 
   return (
     <div style={{ padding: "20px", maxWidth: "1400px", margin: "0 auto" }}>
       <h1>转会历史</h1>
+
+      <div style={{ marginBottom: "20px", padding: "15px", backgroundColor: "#f9f9f9", borderRadius: "4px" }}>
+        <div style={{ display: "flex", alignItems: "center", gap: "15px", flexWrap: "wrap" }}>
+          <label style={{ fontWeight: "bold" }}>按球队筛选：</label>
+          <div style={{ flex: "1", minWidth: "300px", maxWidth: "400px" }}>
+            <TeamSelector
+              teamsByLevel={teamsByLevel}
+              loading={loadingTeams}
+              value={teamFilter}
+              onChange={handleFilterChange}
+            />
+          </div>
+          {teamFilter && (
+            <button onClick={clearFilter} style={{ padding: "5px 15px", cursor: "pointer" }}>
+              清除筛选
+            </button>
+          )}
+        </div>
+        {teamFilter && (
+          <div style={{ marginTop: "10px", color: "#666", fontSize: "14px" }}>
+            当前筛选：{teamFilter}（显示转出或转入该球队的记录）
+          </div>
+        )}
+      </div>
 
       {loading ? (
         <div>加载中...</div>

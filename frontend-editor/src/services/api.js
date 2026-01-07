@@ -50,10 +50,14 @@ export async function rejectApplication(token, id) {
   return res.data;
 }
 
-export async function fetchHistory(token, page = 1, pageSize = 10) {
+export async function fetchHistory(token, page = 1, pageSize = 10, team = null) {
   // History endpoint is public, but we can still send token for consistency
+  const params = { page, pageSize };
+  if (team) {
+    params.team = team;
+  }
   const res = await axios.get(`${API_BASE}/history`, {
-    params: { page, pageSize }
+    params
   });
   return res.data;
 }
@@ -81,6 +85,11 @@ export async function eraseHistory(token) {
 
 export async function exportHistoryCsv() {
   const res = await axios.get(`${API_BASE}/history/export`, { responseType: "blob" });
+  return res.data;
+}
+
+export async function fetchTeams() {
+  const res = await axios.get(`${API_BASE}/teams`);
   return res.data;
 }
 
