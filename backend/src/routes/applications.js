@@ -19,6 +19,17 @@ router.post("/", async (req, res) => {
       "SELECT * FROM tm_transfer_history WHERE archived = false"
     );
 
+    // Get all pending applications for duplicate checking
+    const { rows: pendingApplications } = await pool.query(
+      "SELECT * FROM tm_transfer_applications WHERE status = 'pending'"
+    );
+
+    // Combine history and pending applications for duplicate checking
+    const allExistingRecords = [
+      ...historyRecords.map(r => ({ ...r, source: 'history' })),
+      ...pendingApplications.map(r => ({ ...r, source: 'pending', archived: false }))
+    ];
+
     const submitted = [];
     const duplicates = [];
     const errors = [];
@@ -37,10 +48,10 @@ router.post("/", async (req, res) => {
         continue;
       }
 
-      // Check for duplicates
+      // Check for duplicates against both history and pending applications
       const dupMatches = checkDuplicates(
         { player1, player2, player3, player4, team_out, team_in, price: priceNum, remarks },
-        historyRecords
+        allExistingRecords
       );
 
       if (dupMatches.length > 0) {
