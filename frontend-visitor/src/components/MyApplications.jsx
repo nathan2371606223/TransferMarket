@@ -171,15 +171,17 @@ function MyApplications() {
                           style={{ width: "100%", padding: "5px" }}
                         />
                       </div>
-                      <div>
-                        <label>价格 *</label>
-                        <input
-                          type="number"
-                          value={editData.price}
-                          onChange={(e) => setEditData({ ...editData, price: e.target.value })}
-                          style={{ width: "100%", padding: "5px" }}
-                        />
-                      </div>
+                        <div>
+                          <label>价格 *</label>
+                          <input
+                            type="number"
+                            step="1"
+                            min="0"
+                            value={editData.price}
+                            onChange={(e) => setEditData({ ...editData, price: e.target.value })}
+                            style={{ width: "100%", padding: "5px" }}
+                          />
+                        </div>
                       <div>
                         <label>球员3</label>
                         <input
