@@ -4,6 +4,7 @@ const bodyParser = require("body-parser");
 const authRoutes = require("./routes/auth");
 const applicationsRoutes = require("./routes/applications");
 const historyRoutes = require("./routes/history");
+const teamsRoutes = require("./routes/teams");
 const { runMigrations } = require("./db/migrations");
 
 const app = express();
@@ -33,6 +34,7 @@ app.get("/health", (req, res) => {
 app.use("/api/auth", authRoutes);
 app.use("/api/applications", applicationsRoutes);
 app.use("/api/history", historyRoutes);
+app.use("/api/teams", teamsRoutes);
 
 const start = async () => {
   await runMigrations();

@@ -1,5 +1,5 @@
-import React, { useState } from "react";
-import { submitApplications } from "../services/api";
+import React, { useState, useEffect } from "react";
+import { submitApplications, fetchTeams } from "../services/api";
 
 function ApplicationForm() {
   const [applications, setApplications] = useState([
@@ -8,6 +8,24 @@ function ApplicationForm() {
   const [submitting, setSubmitting] = useState(false);
   const [message, setMessage] = useState({ type: "", text: "" });
   const [duplicateWarning, setDuplicateWarning] = useState(null);
+  const [teamsByLevel, setTeamsByLevel] = useState({});
+  const [loadingTeams, setLoadingTeams] = useState(true);
+
+  // Load teams on component mount
+  useEffect(() => {
+    const loadTeams = async () => {
+      try {
+        setLoadingTeams(true);
+        const data = await fetchTeams();
+        setTeamsByLevel(data);
+      } catch (err) {
+        setMessage({ type: "error", text: "加载球队列表失败" });
+      } finally {
+        setLoadingTeams(false);
+      }
+    };
+    loadTeams();
+  }, []);
 
   const addApplication = () => {
     setApplications([
@@ -195,20 +213,20 @@ function ApplicationForm() {
             </div>
             <div>
               <label>转出球队 *</label>
-              <input
-                type="text"
+              <TeamSelector
+                teamsByLevel={teamsByLevel}
+                loading={loadingTeams}
                 value={app.team_out}
-                onChange={(e) => updateApplication(index, "team_out", e.target.value)}
-                style={{ width: "100%", padding: "5px" }}
+                onChange={(value) => updateApplication(index, "team_out", value)}
               />
             </div>
             <div>
               <label>转入球队 *</label>
-              <input
-                type="text"
+              <TeamSelector
+                teamsByLevel={teamsByLevel}
+                loading={loadingTeams}
                 value={app.team_in}
-                onChange={(e) => updateApplication(index, "team_in", e.target.value)}
-                style={{ width: "100%", padding: "5px" }}
+                onChange={(value) => updateApplication(index, "team_in", value)}
               />
             </div>
             <div>
@@ -261,6 +279,79 @@ function ApplicationForm() {
           {submitting ? "提交中..." : "提交申请"}
         </button>
       </div>
+    </div>
+  );
+}
+
+// TeamSelector component for selecting teams by level
+function TeamSelector({ teamsByLevel, loading, value, onChange }) {
+  const [selectedLevel, setSelectedLevel] = useState("");
+  const [selectedTeam, setSelectedTeam] = useState(value || "");
+
+  // Update selectedTeam and selectedLevel when value prop changes
+  useEffect(() => {
+    setSelectedTeam(value || "");
+    // Try to determine level from value if it's a team name
+    if (value && teamsByLevel && Object.keys(teamsByLevel).length > 0) {
+      let found = false;
+      for (const level in teamsByLevel) {
+        const team = teamsByLevel[level].find((t) => t.name === value);
+        if (team) {
+          setSelectedLevel(level);
+          found = true;
+          break;
+        }
+      }
+      if (!found) {
+        setSelectedLevel("");
+      }
+    } else if (!value) {
+      setSelectedLevel("");
+    }
+  }, [value, teamsByLevel]);
+
+  const handleLevelChange = (level) => {
+    setSelectedLevel(level);
+    setSelectedTeam("");
+    onChange("");
+  };
+
+  const handleTeamChange = (teamName) => {
+    setSelectedTeam(teamName);
+    onChange(teamName);
+  };
+
+  const availableTeams = selectedLevel ? teamsByLevel[selectedLevel] || [] : [];
+
+  if (loading) {
+    return <div style={{ padding: "5px", color: "#666" }}>加载中...</div>;
+  }
+
+  return (
+    <div>
+      <select
+        value={selectedLevel}
+        onChange={(e) => handleLevelChange(e.target.value)}
+        style={{ width: "100%", padding: "5px", marginBottom: "5px" }}
+      >
+        <option value="">选择级别</option>
+        <option value="1">级别 1</option>
+        <option value="2">级别 2</option>
+        <option value="3">级别 3</option>
+      </select>
+      <select
+        value={selectedTeam}
+        onChange={(e) => handleTeamChange(e.target.value)}
+        disabled={!selectedLevel}
+        style={{ width: "100%", padding: "5px" }}
+      >
+        <option value="">选择球队</option>
+        {availableTeams.map((team) => (
+          <option key={team.id} value={team.name}>
+            {team.name}
+          </option>
+        ))}
+      </select>
     </div>
   );
 }

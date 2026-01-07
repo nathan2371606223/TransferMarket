@@ -27,3 +27,8 @@ export async function exportHistoryCsv() {
   return res.data;
 }
 
+export async function fetchTeams() {
+  const res = await axios.get(`${API_BASE}/teams`);
+  return res.data;
+}
+
