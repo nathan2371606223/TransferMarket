@@ -18,10 +18,12 @@ function HistoryManager({ token }) {
     setLoading(true);
     try {
       const result = await fetchHistory(token, page, pageSize);
+      console.log("History result:", result); // Debug log
       setHistory(result.data || []);
       setTotal(result.total || 0);
     } catch (err) {
       console.error("Failed to load history", err);
+      alert("加载历史记录失败: " + (err.response?.data?.message || err.message));
     } finally {
       setLoading(false);
     }
@@ -65,6 +67,13 @@ function HistoryManager({ token }) {
 
       {loading ? (
         <div>加载中...</div>
+      ) : history.length === 0 ? (
+        <div style={{ padding: "20px", textAlign: "center", color: "#666" }}>
+          <p>暂无历史记录</p>
+          <p style={{ fontSize: "14px", marginTop: "10px" }}>
+            已批准或拒绝的申请将显示在这里
+          </p>
+        </div>
       ) : (
         <>
           <table style={{ width: "100%", borderCollapse: "collapse", marginBottom: "20px" }}>

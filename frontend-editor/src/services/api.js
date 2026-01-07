@@ -51,9 +51,9 @@ export async function rejectApplication(token, id) {
 }
 
 export async function fetchHistory(token, page = 1, pageSize = 10) {
+  // History endpoint is public, but we can still send token for consistency
   const res = await axios.get(`${API_BASE}/history`, {
-    params: { page, pageSize },
-    headers: authHeaders(token)
+    params: { page, pageSize }
   });
   return res.data;
 }
