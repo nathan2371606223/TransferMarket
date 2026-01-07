@@ -174,10 +174,7 @@ router.post("/:id/approve", authMiddleware, async (req, res) => {
 
       const app = apps[0];
 
-      // Update application status
-      await client.query("UPDATE tm_transfer_applications SET status='approved', updated_at=NOW() WHERE id=$1", [id]);
-
-      // Create history record
+      // Create history record (before deleting application)
       await client.query(
         `INSERT INTO tm_transfer_history 
          (application_id, player1, player2, player3, player4, team_out, team_in, price, remarks, status)
@@ -194,6 +191,9 @@ router.post("/:id/approve", authMiddleware, async (req, res) => {
           app.remarks || null
         ]
       );
+
+      // Delete application record after approval (data is safely stored in history)
+      await client.query("DELETE FROM tm_transfer_applications WHERE id=$1", [id]);
 
       await client.query("COMMIT");
 
@@ -235,10 +235,7 @@ router.post("/:id/reject", authMiddleware, async (req, res) => {
 
       const app = apps[0];
 
-      // Update application status
-      await client.query("UPDATE tm_transfer_applications SET status='rejected', updated_at=NOW() WHERE id=$1", [id]);
-
-      // Create history record
+      // Create history record (before deleting application)
       await client.query(
         `INSERT INTO tm_transfer_history 
          (application_id, player1, player2, player3, player4, team_out, team_in, price, remarks, status)
@@ -255,6 +252,9 @@ router.post("/:id/reject", authMiddleware, async (req, res) => {
           app.remarks || null
         ]
       );
+
+      // Delete application record after rejection (data is safely stored in history)
+      await client.query("DELETE FROM tm_transfer_applications WHERE id=$1", [id]);
 
       await client.query("COMMIT");
 
