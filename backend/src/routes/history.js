@@ -34,8 +34,11 @@ router.get("/", async (req, res) => {
   query += " ORDER BY created_at DESC";
 
   try {
-    // Get total count
-    const countQuery = query.replace(/SELECT \*/, "SELECT COUNT(*)::int as total");
+    // Get total count - build count query separately
+    let countQuery = "SELECT COUNT(*)::int as total FROM tm_transfer_history";
+    if (conditions.length > 0) {
+      countQuery += " WHERE " + conditions.join(" AND ");
+    }
     const { rows: countRows } = await pool.query(countQuery, params);
     const total = countRows[0]?.total || 0;
 
@@ -52,8 +55,11 @@ router.get("/", async (req, res) => {
       pageSize: sizeNum
     });
   } catch (err) {
-    console.error(err);
-    return res.status(500).json({ message: "获取历史失败" });
+    console.error("Error fetching history:", err);
+    return res.status(500).json({ 
+      message: "获取历史失败",
+      error: process.env.NODE_ENV === "development" ? err.message : undefined
+    });
   }
 });
 

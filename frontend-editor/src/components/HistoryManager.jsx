@@ -19,11 +19,20 @@ function HistoryManager({ token }) {
     try {
       const result = await fetchHistory(token, page, pageSize);
       console.log("History result:", result); // Debug log
+      if (!result) {
+        throw new Error("API 返回空响应");
+      }
       setHistory(result.data || []);
       setTotal(result.total || 0);
     } catch (err) {
       console.error("Failed to load history", err);
-      alert("加载历史记录失败: " + (err.response?.data?.message || err.message));
+      const errorMsg = err.response?.data?.message || err.response?.data?.error || err.message || "未知错误";
+      console.error("Error details:", {
+        status: err.response?.status,
+        data: err.response?.data,
+        message: err.message
+      });
+      alert(`加载历史记录失败: ${errorMsg}`);
     } finally {
       setLoading(false);
     }
