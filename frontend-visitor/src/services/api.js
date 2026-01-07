@@ -2,8 +2,8 @@ import axios from "axios";
 
 const API_BASE = import.meta.env.VITE_API_BASE || "http://localhost:3000/api";
 
-export async function submitApplications(applications) {
-  const res = await axios.post(`${API_BASE}/applications`, { applications });
+export async function submitApplications(applications, force = false) {
+  const res = await axios.post(`${API_BASE}/applications`, { applications, force });
   return res.data;
 }
 

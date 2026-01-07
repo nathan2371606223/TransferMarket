@@ -9,6 +9,7 @@ const router = express.Router();
 // Submit new application(s) - public endpoint
 router.post("/", async (req, res) => {
   const applications = req.body?.applications || [];
+  const force = req.body?.force || false; // If true, skip duplicate check and submit anyway
   if (!Array.isArray(applications) || applications.length === 0) {
     return res.status(400).json({ message: "请提供转会申请" });
   }
@@ -49,15 +50,17 @@ router.post("/", async (req, res) => {
         continue;
       }
 
-      // Check for duplicates against both history and pending applications
-      const dupMatches = checkDuplicates(
-        { player1, player2, player3, player4, team_out, team_in, price: priceNum, remarks },
-        allExistingRecords
-      );
+      // Check for duplicates against both history and pending applications (unless force=true)
+      if (!force) {
+        const dupMatches = checkDuplicates(
+          { player1, player2, player3, player4, team_out, team_in, price: priceNum, remarks },
+          allExistingRecords
+        );
 
-      if (dupMatches.length > 0) {
-        duplicates.push({ application: app, matches: dupMatches });
-        continue; // Don't insert if duplicates found
+        if (dupMatches.length > 0) {
+          duplicates.push({ application: app, matches: dupMatches });
+          continue; // Don't insert if duplicates found (unless force=true)
+        }
       }
 
       // Insert application

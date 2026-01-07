@@ -129,7 +129,8 @@ function ApplicationForm() {
 
     setSubmitting(true);
     try {
-      const result = await submitApplications(data);
+      // Force submit by passing force=true to skip duplicate check
+      const result = await submitApplications(data, true);
       setMessage({ type: "success", text: `成功提交 ${result.submitted} 条申请` });
       
       // Store submitted application IDs in localStorage
