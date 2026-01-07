@@ -1,0 +1,261 @@
+import React, { useState, useEffect } from "react";
+import { fetchApplications, updateApplication, approveApplication, rejectApplication } from "../services/api";
+
+function ApplicationList({ token }) {
+  const [applications, setApplications] = useState([]);
+  const [statusFilter, setStatusFilter] = useState("");
+  const [loading, setLoading] = useState(false);
+  const [editingId, setEditingId] = useState(null);
+  const [editData, setEditData] = useState({});
+  const [message, setMessage] = useState({ type: "", text: "" });
+
+  useEffect(() => {
+    loadApplications();
+  }, [statusFilter, token]);
+
+  const loadApplications = async () => {
+    setLoading(true);
+    try {
+      const data = await fetchApplications(token, statusFilter || undefined);
+      setApplications(data || []);
+    } catch (err) {
+      setMessage({ type: "error", text: err.response?.data?.message || "加载失败" });
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleApprove = async (id) => {
+    if (!confirm("确认批准此申请？")) return;
+    try {
+      const result = await approveApplication(token, id);
+      setMessage({ type: "success", text: result.message || "已批准" });
+      if (result.formatted) {
+        alert(`已批准。格式化记录（可复制到预算模块）：\n${result.formatted}`);
+      }
+      loadApplications();
+    } catch (err) {
+      setMessage({ type: "error", text: err.response?.data?.message || "批准失败" });
+    }
+  };
+
+  const handleReject = async (id) => {
+    if (!confirm("确认拒绝此申请？")) return;
+    try {
+      const result = await rejectApplication(token, id);
+      setMessage({ type: "success", text: result.message || "已拒绝" });
+      loadApplications();
+    } catch (err) {
+      setMessage({ type: "error", text: err.response?.data?.message || "拒绝失败" });
+    }
+  };
+
+  const handleEdit = (app) => {
+    setEditingId(app.id);
+    setEditData({
+      player1: app.player1,
+      player2: app.player2 || "",
+      player3: app.player3 || "",
+      player4: app.player4 || "",
+      team_out: app.team_out,
+      team_in: app.team_in,
+      price: app.price,
+      remarks: app.remarks || ""
+    });
+  };
+
+  const handleSaveEdit = async () => {
+    try {
+      await updateApplication(token, editingId, editData);
+      setMessage({ type: "success", text: "更新成功" });
+      setEditingId(null);
+      loadApplications();
+    } catch (err) {
+      setMessage({ type: "error", text: err.response?.data?.message || "更新失败" });
+    }
+  };
+
+  const handleCancelEdit = () => {
+    setEditingId(null);
+    setEditData({});
+  };
+
+  return (
+    <div style={{ padding: "20px", maxWidth: "1600px", margin: "0 auto" }}>
+      <h1>转会申请管理</h1>
+
+      <div style={{ marginBottom: "20px" }}>
+        <label>状态筛选：</label>
+        <select value={statusFilter} onChange={(e) => setStatusFilter(e.target.value)}>
+          <option value="">全部</option>
+          <option value="pending">待处理</option>
+          <option value="approved">已批准</option>
+          <option value="rejected">已拒绝</option>
+        </select>
+      </div>
+
+      {message.text && (
+        <div
+          style={{
+            padding: "10px",
+            marginBottom: "20px",
+            borderRadius: "4px",
+            backgroundColor: message.type === "error" ? "#fee" : "#efe",
+            color: message.type === "error" ? "#c00" : "#0c0"
+          }}
+        >
+          {message.text}
+        </div>
+      )}
+
+      {loading ? (
+        <div>加载中...</div>
+      ) : (
+        <table style={{ width: "100%", borderCollapse: "collapse" }}>
+          <thead>
+            <tr style={{ backgroundColor: "#f0f0f0" }}>
+              <th style={{ border: "1px solid #ddd", padding: "8px" }}>ID</th>
+              <th style={{ border: "1px solid #ddd", padding: "8px" }}>球员1</th>
+              <th style={{ border: "1px solid #ddd", padding: "8px" }}>球员2</th>
+              <th style={{ border: "1px solid #ddd", padding: "8px" }}>球员3</th>
+              <th style={{ border: "1px solid #ddd", padding: "8px" }}>球员4</th>
+              <th style={{ border: "1px solid #ddd", padding: "8px" }}>转出球队</th>
+              <th style={{ border: "1px solid #ddd", padding: "8px" }}>转入球队</th>
+              <th style={{ border: "1px solid #ddd", padding: "8px" }}>价格</th>
+              <th style={{ border: "1px solid #ddd", padding: "8px" }}>备注</th>
+              <th style={{ border: "1px solid #ddd", padding: "8px" }}>状态</th>
+              <th style={{ border: "1px solid #ddd", padding: "8px" }}>操作</th>
+            </tr>
+          </thead>
+          <tbody>
+            {applications.map((app) =>
+              editingId === app.id ? (
+                <tr key={app.id}>
+                  <td colSpan={11} style={{ border: "1px solid #ddd", padding: "10px" }}>
+                    <div style={{ display: "grid", gridTemplateColumns: "repeat(2, 1fr)", gap: "10px" }}>
+                      <div>
+                        <label>球员1 *</label>
+                        <input
+                          type="text"
+                          value={editData.player1}
+                          onChange={(e) => setEditData({ ...editData, player1: e.target.value })}
+                          style={{ width: "100%", padding: "5px" }}
+                        />
+                      </div>
+                      <div>
+                        <label>球员2</label>
+                        <input
+                          type="text"
+                          value={editData.player2}
+                          onChange={(e) => setEditData({ ...editData, player2: e.target.value })}
+                          style={{ width: "100%", padding: "5px" }}
+                        />
+                      </div>
+                      <div>
+                        <label>转出球队 *</label>
+                        <input
+                          type="text"
+                          value={editData.team_out}
+                          onChange={(e) => setEditData({ ...editData, team_out: e.target.value })}
+                          style={{ width: "100%", padding: "5px" }}
+                        />
+                      </div>
+                      <div>
+                        <label>转入球队 *</label>
+                        <input
+                          type="text"
+                          value={editData.team_in}
+                          onChange={(e) => setEditData({ ...editData, team_in: e.target.value })}
+                          style={{ width: "100%", padding: "5px" }}
+                        />
+                      </div>
+                      <div>
+                        <label>价格 *</label>
+                        <input
+                          type="number"
+                          value={editData.price}
+                          onChange={(e) => setEditData({ ...editData, price: e.target.value })}
+                          style={{ width: "100%", padding: "5px" }}
+                        />
+                      </div>
+                      <div>
+                        <label>球员3</label>
+                        <input
+                          type="text"
+                          value={editData.player3}
+                          onChange={(e) => setEditData({ ...editData, player3: e.target.value })}
+                          style={{ width: "100%", padding: "5px" }}
+                        />
+                      </div>
+                      <div>
+                        <label>球员4</label>
+                        <input
+                          type="text"
+                          value={editData.player4}
+                          onChange={(e) => setEditData({ ...editData, player4: e.target.value })}
+                          style={{ width: "100%", padding: "5px" }}
+                        />
+                      </div>
+                      <div>
+                        <label>备注</label>
+                        <input
+                          type="text"
+                          value={editData.remarks}
+                          onChange={(e) => setEditData({ ...editData, remarks: e.target.value })}
+                          style={{ width: "100%", padding: "5px" }}
+                        />
+                      </div>
+                    </div>
+                    <div style={{ marginTop: "10px" }}>
+                      <button onClick={handleSaveEdit} style={{ marginRight: "10px" }}>
+                        保存
+                      </button>
+                      <button onClick={handleCancelEdit}>取消</button>
+                    </div>
+                  </td>
+                </tr>
+              ) : (
+                <tr key={app.id}>
+                  <td style={{ border: "1px solid #ddd", padding: "8px" }}>{app.id}</td>
+                  <td style={{ border: "1px solid #ddd", padding: "8px" }}>{app.player1 || ""}</td>
+                  <td style={{ border: "1px solid #ddd", padding: "8px" }}>{app.player2 || ""}</td>
+                  <td style={{ border: "1px solid #ddd", padding: "8px" }}>{app.player3 || ""}</td>
+                  <td style={{ border: "1px solid #ddd", padding: "8px" }}>{app.player4 || ""}</td>
+                  <td style={{ border: "1px solid #ddd", padding: "8px" }}>{app.team_out || ""}</td>
+                  <td style={{ border: "1px solid #ddd", padding: "8px" }}>{app.team_in || ""}</td>
+                  <td style={{ border: "1px solid #ddd", padding: "8px" }}>{app.price || ""}</td>
+                  <td style={{ border: "1px solid #ddd", padding: "8px" }}>{app.remarks || ""}</td>
+                  <td style={{ border: "1px solid #ddd", padding: "8px" }}>{app.status || ""}</td>
+                  <td style={{ border: "1px solid #ddd", padding: "8px" }}>
+                    {app.status === "pending" && (
+                      <>
+                        <button onClick={() => handleEdit(app)} style={{ marginRight: "5px" }}>
+                          编辑
+                        </button>
+                        <button onClick={() => handleApprove(app.id)} style={{ marginRight: "5px", backgroundColor: "#0c0", color: "white" }}>
+                          批准
+                        </button>
+                        <button onClick={() => handleReject(app.id)} style={{ backgroundColor: "#c00", color: "white" }}>
+                          拒绝
+                        </button>
+                      </>
+                    )}
+                    {app.status === "approved" && (
+                      <span style={{ color: "#0c0" }}>已批准</span>
+                    )}
+                    {app.status === "rejected" && (
+                      <span style={{ color: "#c00" }}>已拒绝</span>
+                    )}
+                  </td>
+                </tr>
+              )
+            )}
+          </tbody>
+        </table>
+      )}
+    </div>
+  );
+}
+
+export default ApplicationList;
+
