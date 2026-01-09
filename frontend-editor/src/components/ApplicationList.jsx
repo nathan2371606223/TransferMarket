@@ -158,6 +158,7 @@ function ApplicationList({ token, onApproval }) {
         <table style={{ width: "100%", borderCollapse: "collapse" }}>
           <thead>
             <tr style={{ backgroundColor: "#f0f0f0" }}>
+              <th style={{ border: "1px solid #ddd", padding: "8px" }}>版本</th>
               <th style={{ border: "1px solid #ddd", padding: "8px" }}>ID</th>
               <th style={{ border: "1px solid #ddd", padding: "8px" }}>球员1</th>
               <th style={{ border: "1px solid #ddd", padding: "8px" }}>球员2</th>
@@ -172,10 +173,15 @@ function ApplicationList({ token, onApproval }) {
             </tr>
           </thead>
           <tbody>
-            {applications.map((app) =>
-              editingId === app.id ? (
-                <tr key={app.id}>
-                  <td colSpan={11} style={{ border: "1px solid #ddd", padding: "10px" }}>
+            {applications.map((app) => {
+              const originalData = app.original_data ? (typeof app.original_data === 'string' ? JSON.parse(app.original_data) : app.original_data) : null;
+              const hasEdits = originalData !== null;
+              
+              return (
+                <React.Fragment key={app.id}>
+                  {editingId === app.id ? (
+                    <tr>
+                      <td colSpan={12} style={{ border: "1px solid #ddd", padding: "10px" }}>
                     <div style={{ display: "grid", gridTemplateColumns: "repeat(2, 1fr)", gap: "10px" }}>
                       <div>
                         <label>球员1 *</label>
@@ -261,54 +267,78 @@ function ApplicationList({ token, onApproval }) {
                   </td>
                 </tr>
               ) : (
-                <tr key={app.id}>
-                  <td style={{ border: "1px solid #ddd", padding: "8px" }}>{app.id}</td>
-                  <td style={{ border: "1px solid #ddd", padding: "8px" }}>{app.player1 || ""}</td>
-                  <td style={{ border: "1px solid #ddd", padding: "8px" }}>{app.player2 || ""}</td>
-                  <td style={{ border: "1px solid #ddd", padding: "8px" }}>{app.team_out || ""}</td>
-                  <td style={{ border: "1px solid #ddd", padding: "8px" }}>{app.team_in || ""}</td>
-                  <td style={{ border: "1px solid #ddd", padding: "8px" }}>{app.price || ""}</td>
-                  <td style={{ border: "1px solid #ddd", padding: "8px" }}>{app.player3 || ""}</td>
-                  <td style={{ border: "1px solid #ddd", padding: "8px" }}>{app.player4 || ""}</td>
-                  <td style={{ border: "1px solid #ddd", padding: "8px" }}>{app.remarks || ""}</td>
-                  <td style={{ border: "1px solid #ddd", padding: "8px" }}>{app.status || ""}</td>
-                  <td style={{ border: "1px solid #ddd", padding: "8px" }}>
-                    {app.status === "pending" && (
-                      <>
-                        <button onClick={() => handleEdit(app)} style={{ marginRight: "5px" }}>
-                          编辑
-                        </button>
-                        <button onClick={() => handleApprove(app.id)} style={{ marginRight: "5px", backgroundColor: "#0c0", color: "white" }}>
-                          批准
-                        </button>
-                        <button onClick={() => handleReject(app.id)} style={{ marginRight: "5px", backgroundColor: "#c00", color: "white" }}>
-                          拒绝
-                        </button>
-                        <button onClick={() => handleDelete(app.id)} style={{ backgroundColor: "#800", color: "white" }}>
-                          删除
-                        </button>
-                      </>
-                    )}
-                    {app.status === "approved" && (
-                      <>
-                        <span style={{ color: "#0c0", marginRight: "10px" }}>已批准</span>
-                        <button onClick={() => handleDelete(app.id)} style={{ backgroundColor: "#800", color: "white" }}>
-                          删除
-                        </button>
-                      </>
-                    )}
-                    {app.status === "rejected" && (
-                      <>
-                        <span style={{ color: "#c00", marginRight: "10px" }}>已拒绝</span>
-                        <button onClick={() => handleDelete(app.id)} style={{ backgroundColor: "#800", color: "white" }}>
-                          删除
-                        </button>
-                      </>
-                    )}
-                  </td>
-                </tr>
-              )
-            )}
+                <>
+                  {/* Original version row (if edited) */}
+                  {hasEdits && (
+                    <tr style={{ backgroundColor: "#fff9e6" }}>
+                      <td style={{ border: "1px solid #ddd", padding: "8px", fontWeight: "bold", color: "#666" }}>
+                        原始
+                      </td>
+                      <td style={{ border: "1px solid #ddd", padding: "8px" }}>{app.id}</td>
+                      <td style={{ border: "1px solid #ddd", padding: "8px" }}>{originalData.player1 || ""}</td>
+                      <td style={{ border: "1px solid #ddd", padding: "8px" }}>{originalData.player2 || ""}</td>
+                      <td style={{ border: "1px solid #ddd", padding: "8px" }}>{originalData.team_out || ""}</td>
+                      <td style={{ border: "1px solid #ddd", padding: "8px" }}>{originalData.team_in || ""}</td>
+                      <td style={{ border: "1px solid #ddd", padding: "8px" }}>{originalData.price || ""}</td>
+                      <td style={{ border: "1px solid #ddd", padding: "8px" }}>{originalData.player3 || ""}</td>
+                      <td style={{ border: "1px solid #ddd", padding: "8px" }}>{originalData.player4 || ""}</td>
+                      <td style={{ border: "1px solid #ddd", padding: "8px" }}>{originalData.remarks || ""}</td>
+                      <td style={{ border: "1px solid #ddd", padding: "8px" }} colSpan={2}></td>
+                    </tr>
+                  )}
+                  {/* Current/Edited version row */}
+                  <tr style={{ backgroundColor: hasEdits ? "#e6f7ff" : "transparent" }}>
+                    <td style={{ border: "1px solid #ddd", padding: "8px", fontWeight: "bold", color: hasEdits ? "#1890ff" : "inherit" }}>
+                      {hasEdits ? "已编辑" : ""}
+                    </td>
+                    <td style={{ border: "1px solid #ddd", padding: "8px" }}>{app.id}</td>
+                    <td style={{ border: "1px solid #ddd", padding: "8px" }}>{app.player1 || ""}</td>
+                    <td style={{ border: "1px solid #ddd", padding: "8px" }}>{app.player2 || ""}</td>
+                    <td style={{ border: "1px solid #ddd", padding: "8px" }}>{app.team_out || ""}</td>
+                    <td style={{ border: "1px solid #ddd", padding: "8px" }}>{app.team_in || ""}</td>
+                    <td style={{ border: "1px solid #ddd", padding: "8px" }}>{app.price || ""}</td>
+                    <td style={{ border: "1px solid #ddd", padding: "8px" }}>{app.player3 || ""}</td>
+                    <td style={{ border: "1px solid #ddd", padding: "8px" }}>{app.player4 || ""}</td>
+                    <td style={{ border: "1px solid #ddd", padding: "8px" }}>{app.remarks || ""}</td>
+                    <td style={{ border: "1px solid #ddd", padding: "8px" }}>{app.status || ""}</td>
+                    <td style={{ border: "1px solid #ddd", padding: "8px" }}>
+                      {app.status === "pending" && (
+                        <>
+                          <button onClick={() => handleEdit(app)} style={{ marginRight: "5px" }}>
+                            编辑
+                          </button>
+                          <button onClick={() => handleApprove(app.id)} style={{ marginRight: "5px", backgroundColor: "#0c0", color: "white" }}>
+                            批准
+                          </button>
+                          <button onClick={() => handleReject(app.id)} style={{ marginRight: "5px", backgroundColor: "#c00", color: "white" }}>
+                            拒绝
+                          </button>
+                          <button onClick={() => handleDelete(app.id)} style={{ backgroundColor: "#800", color: "white" }}>
+                            删除
+                          </button>
+                        </>
+                      )}
+                      {app.status === "approved" && (
+                        <>
+                          <span style={{ color: "#0c0", marginRight: "10px" }}>已批准</span>
+                          <button onClick={() => handleDelete(app.id)} style={{ backgroundColor: "#800", color: "white" }}>
+                            删除
+                          </button>
+                        </>
+                      )}
+                      {app.status === "rejected" && (
+                        <>
+                          <span style={{ color: "#c00", marginRight: "10px" }}>已拒绝</span>
+                          <button onClick={() => handleDelete(app.id)} style={{ backgroundColor: "#800", color: "white" }}>
+                            删除
+                          </button>
+                        </>
+                      )}
+                    </td>
+                  </tr>
+                </>
+              )}
+            })}
           </tbody>
         </table>
       )}

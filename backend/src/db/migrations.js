@@ -19,9 +19,23 @@ async function runMigrations() {
       price NUMERIC(14,2) NOT NULL,
       remarks TEXT,
       status VARCHAR(50) DEFAULT 'pending',
+      original_data JSONB,
       created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
       updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
     );
+  `);
+
+  // Add original_data column if it doesn't exist (for existing databases)
+  await pool.query(`
+    DO $$ 
+    BEGIN
+      IF NOT EXISTS (
+        SELECT 1 FROM information_schema.columns 
+        WHERE table_name='tm_transfer_applications' AND column_name='original_data'
+      ) THEN
+        ALTER TABLE tm_transfer_applications ADD COLUMN original_data JSONB;
+      END IF;
+    END $$;
   `);
 
   // Create transfer_history table with tm_ prefix

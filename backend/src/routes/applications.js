@@ -221,6 +221,24 @@ router.put("/:id", async (req, res) => {
     const values = [];
     let paramIndex = 1;
 
+    // Save original data on first edit (only for visitor site, not editor)
+    if (!isAuthenticated && !existing[0].original_data) {
+      // This is the first edit by visitor, save original data
+      const originalData = {
+        player1: existing[0].player1,
+        player2: existing[0].player2,
+        player3: existing[0].player3,
+        player4: existing[0].player4,
+        team_out: existing[0].team_out,
+        team_in: existing[0].team_in,
+        price: existing[0].price,
+        remarks: existing[0].remarks
+      };
+      updates.push(`original_data=$${paramIndex}`);
+      values.push(JSON.stringify(originalData));
+      paramIndex++;
+    }
+
     if (player1 !== undefined) {
       values.push(player1);
       updates.push(`player1=$${paramIndex++}`);
