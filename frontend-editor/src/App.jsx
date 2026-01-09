@@ -7,6 +7,7 @@ import ExportButtons from "./components/ExportButtons";
 import FormattedRecords from "./components/FormattedRecords";
 import TokenAlerts from "./components/TokenAlerts";
 import Announcement from "./components/Announcement";
+import { setTokenExpiredHandler } from "./services/api";
 
 function App() {
   const [token, setToken] = useState(null);
@@ -39,6 +40,15 @@ function App() {
     if (savedToken) {
       setToken(savedToken);
     }
+    
+    // Set up token expiration handler
+    setTokenExpiredHandler(() => {
+      setToken(null);
+    });
+    
+    return () => {
+      setTokenExpiredHandler(null);
+    };
   }, []);
 
   const handleLogin = (newToken) => {
