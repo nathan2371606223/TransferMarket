@@ -12,8 +12,7 @@ function checkDuplicates(application, existingRecords) {
   };
 
   for (const record of existingRecords) {
-    if (record.archived) continue; // Skip archived records
-
+    // Include archived records in duplicate checking
     const recordPrice = Number(record.price);
     if (recordPrice !== appPrice) continue; // Price must match
 

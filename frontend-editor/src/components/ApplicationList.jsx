@@ -25,10 +25,24 @@ function ApplicationList({ token, onApproval }) {
     }
   };
 
-  const handleApprove = async (id) => {
-    if (!confirm("确认批准此申请？")) return;
+  const handleApprove = async (id, force = false) => {
+    if (!force && !confirm("确认批准此申请？")) return;
+    
     try {
-      const result = await approveApplication(token, id);
+      const result = await approveApplication(token, id, force);
+      
+      // Check if team count limit warning
+      if (result.requiresConfirmation && result.exceededTeams) {
+        const warningMsg = result.warning || `批准此申请将使以下球队的转会记录数达到或超过20条：${result.exceededTeams.map(t => `${t.team}(${t.currentCount})`).join(", ")}。是否继续？`;
+        if (confirm(warningMsg)) {
+          // User confirmed, approve with force=true
+          return handleApprove(id, true);
+        } else {
+          // User cancelled
+          return;
+        }
+      }
+      
       setMessage({ type: "success", text: result.message || "已批准" });
       if (result.formatted && onApproval) {
         // Add formatted record to the list instead of showing popup
@@ -39,6 +53,18 @@ function ApplicationList({ token, onApproval }) {
       }
       loadApplications();
     } catch (err) {
+      // Check if it's a team count limit error
+      if (err.response?.status === 400 && err.response?.data?.requiresConfirmation) {
+        const data = err.response.data;
+        const warningMsg = data.warning || `批准此申请将使以下球队的转会记录数达到或超过20条：${data.exceededTeams?.map(t => `${t.team}(${t.currentCount})`).join(", ")}。是否继续？`;
+        if (confirm(warningMsg)) {
+          // User confirmed, approve with force=true
+          return handleApprove(id, true);
+        } else {
+          // User cancelled
+          return;
+        }
+      }
       setMessage({ type: "error", text: err.response?.data?.message || "批准失败" });
     }
   };

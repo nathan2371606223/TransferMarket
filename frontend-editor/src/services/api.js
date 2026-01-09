@@ -62,8 +62,8 @@ export async function updateApplication(token, id, data) {
   return res.data;
 }
 
-export async function approveApplication(token, id) {
-  const res = await axios.post(`${API_BASE}/applications/${id}/approve`, {}, {
+export async function approveApplication(token, id, force = false) {
+  const res = await axios.post(`${API_BASE}/applications/${id}/approve`, { force }, {
     headers: authHeaders(token)
   });
   return res.data;

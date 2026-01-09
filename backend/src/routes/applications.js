@@ -17,9 +17,9 @@ router.post("/", requireTeamToken, async (req, res) => {
   }
 
   try {
-    // Get all non-archived history records for duplicate checking
+    // Get all history records (including archived) for duplicate checking
     const { rows: historyRecords } = await pool.query(
-      "SELECT * FROM tm_transfer_history WHERE archived = false"
+      "SELECT * FROM tm_transfer_history"
     );
 
     // Get all pending applications for duplicate checking
@@ -236,9 +236,32 @@ router.put("/:id", async (req, res) => {
   }
 });
 
+// Helper function to count team occurrences in history (excluding pending)
+async function getTeamCounts(client) {
+  const { rows } = await client.query(`
+    SELECT 
+      team_name,
+      COUNT(*)::int as count
+    FROM (
+      SELECT team_out as team_name FROM tm_transfer_history
+      UNION ALL
+      SELECT team_in as team_name FROM tm_transfer_history
+    ) AS all_teams
+    WHERE team_name IS NOT NULL
+    GROUP BY team_name
+  `);
+  
+  const counts = {};
+  for (const row of rows) {
+    counts[row.team_name] = row.count;
+  }
+  return counts;
+}
+
 // Approve application - requires auth
 router.post("/:id/approve", authMiddleware, async (req, res) => {
   const id = Number(req.params.id);
+  const force = req.body?.force || false; // If true, skip team count check
 
   try {
     const client = await pool.connect();
@@ -253,6 +276,30 @@ router.post("/:id/approve", authMiddleware, async (req, res) => {
       }
 
       const app = apps[0];
+
+      // Check team counts before approval (unless force=true)
+      if (!force) {
+        const teamCounts = await getTeamCounts(client);
+        const teamsToCheck = [app.team_out, app.team_in].filter(Boolean);
+        const exceededTeams = [];
+        
+        for (const team of teamsToCheck) {
+          const currentCount = teamCounts[team] || 0;
+          if (currentCount >= 20) {
+            exceededTeams.push({ team, currentCount });
+          }
+        }
+        
+        if (exceededTeams.length > 0) {
+          await client.query("ROLLBACK");
+          return res.status(400).json({
+            message: "球队数量限制警告",
+            exceededTeams: exceededTeams,
+            warning: `批准此申请将使以下球队的转会记录数达到或超过20条：${exceededTeams.map(t => `${t.team}(${t.currentCount})`).join(", ")}。是否继续？`,
+            requiresConfirmation: true
+          });
+        }
+      }
 
       // Create history record (before deleting application)
       await client.query(

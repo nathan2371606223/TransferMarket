@@ -161,12 +161,21 @@ router.delete("/", authMiddleware, async (req, res) => {
 router.get("/check-duplicate-names", authMiddleware, async (req, res) => {
   try {
     // Get all history records including archived ones
-    const { rows } = await pool.query("SELECT * FROM tm_transfer_history ORDER BY created_at DESC");
+    const { rows: historyRecords } = await pool.query("SELECT * FROM tm_transfer_history ORDER BY created_at DESC");
+    
+    // Get all pending applications
+    const { rows: pendingApplications } = await pool.query("SELECT * FROM tm_transfer_applications WHERE status = 'pending'");
+    
+    // Combine history and pending applications
+    const allRecords = [
+      ...historyRecords.map(r => ({ ...r, source: 'history' })),
+      ...pendingApplications.map(r => ({ ...r, source: 'pending', archived: false }))
+    ];
     
     // Build a map of player name -> records
     const playerMap = new Map();
     
-    for (const record of rows) {
+    for (const record of allRecords) {
       const players = [
         record.player1,
         record.player2,
@@ -190,7 +199,8 @@ router.get("/check-duplicate-names", authMiddleware, async (req, res) => {
           team_in: record.team_in,
           price: record.price,
           status: record.status,
-          archived: record.archived
+          archived: record.archived,
+          source: record.source || 'history'
         });
       }
     }
@@ -213,7 +223,7 @@ router.get("/check-duplicate-names", authMiddleware, async (req, res) => {
     return res.json({
       duplicates: duplicates,
       totalDuplicates: duplicates.length,
-      totalRecords: rows.length
+      totalRecords: allRecords.length
     });
   } catch (err) {
     console.error("Error checking duplicate names:", err);
