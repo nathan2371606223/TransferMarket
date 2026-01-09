@@ -181,6 +181,42 @@ router.put("/:id", async (req, res) => {
       return res.status(403).json({ message: "只能编辑待处理的申请" });
     }
 
+    // Validate required fields for visitor site (non-authenticated) updates
+    if (!isAuthenticated) {
+      const providedData = { player1, team_out, team_in, price };
+      if (player1 !== undefined && !player1?.trim()) {
+        return res.status(400).json({ message: "球员1为必填项" });
+      }
+      if (team_out !== undefined && !team_out?.trim()) {
+        return res.status(400).json({ message: "转出球队为必填项" });
+      }
+      if (team_in !== undefined && !team_in?.trim()) {
+        return res.status(400).json({ message: "转入球队为必填项" });
+      }
+      if (price !== undefined) {
+        const priceNum = Number(price);
+        if (!Number.isFinite(priceNum) || priceNum < 0 || !Number.isInteger(priceNum)) {
+          return res.status(400).json({ message: "价格无效（必须为非负整数）" });
+        }
+      }
+      // For visitor updates, ensure all required fields are provided
+      const currentData = existing[0];
+      const finalData = {
+        player1: player1 !== undefined ? player1 : currentData.player1,
+        team_out: team_out !== undefined ? team_out : currentData.team_out,
+        team_in: team_in !== undefined ? team_in : currentData.team_in,
+        price: price !== undefined ? price : currentData.price
+      };
+      if (!finalData.player1?.trim() || !finalData.team_out?.trim() || !finalData.team_in?.trim() || 
+          finalData.price === null || finalData.price === undefined) {
+        return res.status(400).json({ message: "必填项不能为空" });
+      }
+      const finalPriceNum = Number(finalData.price);
+      if (!Number.isFinite(finalPriceNum) || finalPriceNum < 0 || !Number.isInteger(finalPriceNum)) {
+        return res.status(400).json({ message: "价格无效（必须为非负整数）" });
+      }
+    }
+
     const updates = [];
     const values = [];
     let paramIndex = 1;

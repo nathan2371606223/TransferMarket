@@ -65,7 +65,26 @@ function MyApplications({ onAuthError, refreshTrigger }) {
     });
   };
 
+  const validateEditData = (data) => {
+    if (!data.player1?.trim()) return "球员1为必填项";
+    if (!data.team_out?.trim()) return "转出球队为必填项";
+    if (!data.team_in?.trim()) return "转入球队为必填项";
+    if (data.price === undefined || data.price === null || data.price === "") return "价格为必填项";
+    const priceNum = Number(data.price);
+    if (!Number.isFinite(priceNum) || priceNum < 0 || !Number.isInteger(priceNum)) {
+      return "价格无效（必须为非负整数）";
+    }
+    return null;
+  };
+
   const handleSaveEdit = async () => {
+    // Validate required fields
+    const validationError = validateEditData(editData);
+    if (validationError) {
+      setMessage({ type: "error", text: validationError });
+      return;
+    }
+
     try {
       await updateApplication(editingId, editData);
       setMessage({ type: "success", text: "更新成功" });
