@@ -53,11 +53,12 @@ export async function rejectApplication(token, id) {
 export async function fetchHistory(token, page = 1, pageSize = 10, team = null) {
   // History endpoint is public, but we can still send token for consistency
   const params = { page, pageSize };
-  if (team) {
-    params.team = team;
+  if (team && team.trim()) {
+    params.team = team.trim();
   }
   const res = await axios.get(`${API_BASE}/history`, {
-    params
+    params,
+    headers: authHeaders(token) // Send JWT token for editor site
   });
   return res.data;
 }

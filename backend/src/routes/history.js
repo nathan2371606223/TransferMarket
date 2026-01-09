@@ -28,9 +28,9 @@ router.get("/", async (req, res) => {
   }
 
   // Filter by team (matches either team_out or team_in)
-  if (team) {
+  if (team && team.trim()) {
     conditions.push(`(team_out = $${paramIndex} OR team_in = $${paramIndex})`);
-    params.push(team);
+    params.push(team.trim());
     paramIndex++;
   }
 

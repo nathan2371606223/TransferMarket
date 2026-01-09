@@ -53,7 +53,10 @@ function HistoryManager({ token }) {
   const loadHistory = async () => {
     setLoading(true);
     try {
-      const result = await fetchHistory(token, page, pageSize, teamFilter || undefined);
+      // Pass teamFilter only if it's not empty
+      const teamParam = teamFilter && teamFilter.trim() ? teamFilter.trim() : undefined;
+      console.log("Loading history with filter:", teamParam); // Debug log
+      const result = await fetchHistory(token, page, pageSize, teamParam);
       console.log("History result:", result); // Debug log
       if (!result) {
         throw new Error("API 返回空响应");
