@@ -35,7 +35,8 @@ function App() {
   return (
     <div>
       <nav style={{ backgroundColor: "#333", color: "white", padding: "10px 20px" }}>
-        <div style={{ display: "flex", gap: "20px" }}>
+        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+          <div style={{ display: "flex", gap: "20px" }}>
           <button
             onClick={() => setActiveTab("submit")}
             style={{
@@ -72,6 +73,22 @@ function App() {
           >
             转会历史
           </button>
+          </div>
+          <a
+            href={import.meta.env.VITE_LEAGUE_BUDGET_VISITOR_URL || "https://nathan2371606223.github.io/LeagueBudget/visitor"}
+            target="_blank"
+            rel="noopener noreferrer"
+            style={{
+              color: "white",
+              textDecoration: "none",
+              padding: "5px 10px",
+              border: "1px solid white",
+              borderRadius: "4px",
+              fontSize: "14px"
+            }}
+          >
+            联赛预算
+          </a>
         </div>
       </nav>
 
