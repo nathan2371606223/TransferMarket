@@ -22,7 +22,7 @@ function ExportButtons({ token, onAction }) {
   };
 
   const handleArchive = async () => {
-    if (!confirm("确认归档所有历史记录？归档后的记录将不再参与重复检查，但仍可见。")) return;
+    if (!confirm("确认归档所有历史记录？归档后的记录仅用于视觉区分（灰色背景），仍会参与重复检查。")) return;
     setLoading("archive");
     try {
       await archiveHistory(token);
