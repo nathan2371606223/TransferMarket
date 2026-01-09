@@ -68,3 +68,7 @@ export async function fetchTeams() {
   return res.data;
 }
 
+export async function fetchAnnouncement() {
+  const res = await client.get(`/announcement`);
+  return res.data;
+}
