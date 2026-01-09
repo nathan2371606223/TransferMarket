@@ -77,21 +77,38 @@ function App() {
             转会历史
           </button>
           </div>
-          <a
-            href={import.meta.env.VITE_LEAGUE_BUDGET_VISITOR_URL || "https://nathan2371606223.github.io/LeagueBudget/visitor"}
-            target="_blank"
-            rel="noopener noreferrer"
-            style={{
-              color: "white",
-              textDecoration: "none",
-              padding: "5px 10px",
-              border: "1px solid white",
-              borderRadius: "4px",
-              fontSize: "14px"
-            }}
-          >
-            联赛预算
-          </a>
+          <div style={{ display: "flex", gap: "10px", alignItems: "center" }}>
+            <a
+              href={import.meta.env.VITE_LEAGUE_BUDGET_VISITOR_URL || "https://nathan2371606223.github.io/LeagueBudget/visitor"}
+              target="_blank"
+              rel="noopener noreferrer"
+              style={{
+                color: "white",
+                textDecoration: "none",
+                padding: "5px 10px",
+                border: "1px solid white",
+                borderRadius: "4px",
+                fontSize: "14px"
+              }}
+            >
+              联赛预算
+            </a>
+            <a
+              href={import.meta.env.VITE_AUCTION_BID_VISITOR_URL || "https://nathan2371606223.github.io/AuctionBid/visitor"}
+              target="_blank"
+              rel="noopener noreferrer"
+              style={{
+                color: "white",
+                textDecoration: "none",
+                padding: "5px 10px",
+                border: "1px solid white",
+                borderRadius: "4px",
+                fontSize: "14px"
+              }}
+            >
+              拍卖出价
+            </a>
+          </div>
         </div>
       </nav>
 
