@@ -1,13 +1,12 @@
 const express = require("express");
 const { pool } = require("../db/connection");
 const { authMiddleware } = require("../middleware/auth");
-const { requireTeamToken } = require("../middleware/teamToken");
 const { stringify } = require("csv-stringify/sync");
 
 const router = express.Router();
 
-// Get transfer history - requires team token
-router.get("/", requireTeamToken, async (req, res) => {
+// Get transfer history - public endpoint (visitor uses team token, editor uses JWT, both optional for read access)
+router.get("/", async (req, res) => {
   const { page = 1, pageSize = 10, archived, status, team } = req.query;
   const pageNum = Number(page);
   const sizeNum = Number(pageSize);
