@@ -12,10 +12,9 @@ async function requireTeamToken(req, res, next) {
 
   try {
     const { rows } = await pool.query(
-      `SELECT tt.team_id, tt.token, t.team_name 
-       FROM lb_team_tokens tt 
-       JOIN lb_teams t ON t.id = tt.team_id 
-       WHERE tt.token = $1 AND tt.active = true`,
+      `SELECT team_id, token, team_name 
+       FROM lb_team_tokens 
+       WHERE token = $1 AND active = true`,
       [token]
     );
     if (!rows.length) {
