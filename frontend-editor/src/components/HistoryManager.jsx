@@ -18,10 +18,11 @@ function HistoryManager({ token }) {
 
   // Load teams and filter from localStorage on mount
   useEffect(() => {
+    if (!token) return;
     const loadTeams = async () => {
       try {
         setLoadingTeams(true);
-        const data = await fetchTeams();
+        const data = await fetchTeams(token);
         setTeamsByLevel(data);
         // Load filter from localStorage
         const savedFilter = localStorage.getItem("history_team_filter_editor");
@@ -35,7 +36,7 @@ function HistoryManager({ token }) {
       }
     };
     loadTeams();
-  }, []);
+  }, [token]);
 
   useEffect(() => {
     loadHistory();

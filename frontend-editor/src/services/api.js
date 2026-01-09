@@ -89,8 +89,10 @@ export async function exportHistoryCsv() {
   return res.data;
 }
 
-export async function fetchTeams() {
-  const res = await axios.get(`${API_BASE}/teams`);
+export async function fetchTeams(token) {
+  const res = await axios.get(`${API_BASE}/teams`, {
+    headers: authHeaders(token)
+  });
   return res.data;
 }
 
