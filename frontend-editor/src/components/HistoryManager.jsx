@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { fetchHistory, updateHistory, fetchTeams } from "../services/api";
+import { fetchHistory, updateHistory, fetchTeams, checkDuplicateNames } from "../services/api";
 import TeamSelector from "./TeamSelector";
 
 function HistoryManager({ token }) {
@@ -12,6 +12,8 @@ function HistoryManager({ token }) {
   const [teamsByLevel, setTeamsByLevel] = useState({});
   const [loadingTeams, setLoadingTeams] = useState(true);
   const [teamFilter, setTeamFilter] = useState("");
+  const [checkingDuplicates, setCheckingDuplicates] = useState(false);
+  const [duplicateResult, setDuplicateResult] = useState(null);
   const pageSize = 10;
 
   // Load teams and filter from localStorage on mount
@@ -112,11 +114,86 @@ function HistoryManager({ token }) {
     setEditData({});
   };
 
+  const handleCheckDuplicates = async () => {
+    setCheckingDuplicates(true);
+    setDuplicateResult(null);
+    try {
+      const result = await checkDuplicateNames(token);
+      setDuplicateResult(result);
+      if (result.duplicates.length === 0) {
+        alert("未发现重复的球员名称。");
+      } else {
+        // Show detailed message
+        let message = `发现 ${result.totalDuplicates} 个重复的球员名称：\n\n`;
+        result.duplicates.slice(0, 10).forEach((dup, idx) => {
+          message += `${idx + 1}. 球员 "${dup.player}" 出现在 ${dup.count} 条记录中\n`;
+        });
+        if (result.duplicates.length > 10) {
+          message += `\n... 还有 ${result.duplicates.length - 10} 个重复球员名称`;
+        }
+        alert(message);
+      }
+    } catch (err) {
+      alert(err.response?.data?.message || "检查重复名称失败");
+    } finally {
+      setCheckingDuplicates(false);
+    }
+  };
+
   const totalPages = Math.ceil(total / pageSize);
 
   return (
     <div style={{ padding: "20px", maxWidth: "1600px", margin: "0 auto" }}>
-      <h1>转会历史管理</h1>
+      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "20px" }}>
+        <h1 style={{ margin: 0 }}>转会历史管理</h1>
+        <button
+          onClick={handleCheckDuplicates}
+          disabled={checkingDuplicates}
+          style={{
+            padding: "8px 16px",
+            backgroundColor: "#1976d2",
+            color: "white",
+            border: "none",
+            borderRadius: "4px",
+            cursor: checkingDuplicates ? "not-allowed" : "pointer",
+            fontSize: "14px"
+          }}
+        >
+          {checkingDuplicates ? "检查中..." : "检查重复名称"}
+        </button>
+      </div>
+
+      {duplicateResult && duplicateResult.duplicates.length > 0 && (
+        <div style={{ marginBottom: "20px", padding: "15px", backgroundColor: "#fff3cd", borderRadius: "4px", border: "1px solid #ffc107" }}>
+          <div style={{ fontWeight: "bold", marginBottom: "10px", color: "#856404" }}>
+            发现 {duplicateResult.totalDuplicates} 个重复的球员名称（共检查 {duplicateResult.totalRecords} 条记录，包括已归档）
+          </div>
+          <div style={{ maxHeight: "200px", overflowY: "auto" }}>
+            {duplicateResult.duplicates.map((dup, idx) => (
+              <div key={idx} style={{ marginBottom: "8px", fontSize: "14px" }}>
+                <strong>"{dup.player}"</strong> 出现在 {dup.count} 条记录中：
+                <ul style={{ margin: "5px 0 0 20px", padding: 0 }}>
+                  {dup.records.slice(0, 5).map((rec, recIdx) => (
+                    <li key={recIdx} style={{ marginBottom: "3px" }}>
+                      ID: {rec.id} | {new Date(rec.created_at).toLocaleString("zh-CN")} | 
+                      {rec.player1 && ` 球员1: ${rec.player1}`}
+                      {rec.player2 && ` 球员2: ${rec.player2}`}
+                      {rec.player3 && ` 球员3: ${rec.player3}`}
+                      {rec.player4 && ` 球员4: ${rec.player4}`}
+                      {rec.archived && " [已归档]"}
+                    </li>
+                  ))}
+                  {dup.records.length > 5 && (
+                    <li style={{ color: "#666", fontStyle: "italic" }}>
+                      ... 还有 {dup.records.length - 5} 条记录
+                    </li>
+                  )}
+                </ul>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
 
       <div style={{ marginBottom: "20px", padding: "15px", backgroundColor: "#f9f9f9", borderRadius: "4px" }}>
         <div style={{ display: "flex", alignItems: "center", gap: "15px", flexWrap: "wrap" }}>

@@ -157,6 +157,70 @@ router.delete("/", authMiddleware, async (req, res) => {
   }
 });
 
+// Check for duplicate player names - requires auth
+router.get("/check-duplicate-names", authMiddleware, async (req, res) => {
+  try {
+    // Get all history records including archived ones
+    const { rows } = await pool.query("SELECT * FROM tm_transfer_history ORDER BY created_at DESC");
+    
+    // Build a map of player name -> records
+    const playerMap = new Map();
+    
+    for (const record of rows) {
+      const players = [
+        record.player1,
+        record.player2,
+        record.player3,
+        record.player4
+      ].filter(p => p && p.trim()); // Filter out empty/null players
+      
+      for (const player of players) {
+        const playerName = player.trim();
+        if (!playerMap.has(playerName)) {
+          playerMap.set(playerName, []);
+        }
+        playerMap.get(playerName).push({
+          id: record.id,
+          created_at: record.created_at,
+          player1: record.player1,
+          player2: record.player2,
+          player3: record.player3,
+          player4: record.player4,
+          team_out: record.team_out,
+          team_in: record.team_in,
+          price: record.price,
+          status: record.status,
+          archived: record.archived
+        });
+      }
+    }
+    
+    // Find duplicates (players appearing in more than one record)
+    const duplicates = [];
+    for (const [playerName, records] of playerMap.entries()) {
+      if (records.length > 1) {
+        duplicates.push({
+          player: playerName,
+          count: records.length,
+          records: records
+        });
+      }
+    }
+    
+    // Sort by count (most duplicates first)
+    duplicates.sort((a, b) => b.count - a.count);
+    
+    return res.json({
+      duplicates: duplicates,
+      totalDuplicates: duplicates.length,
+      totalRecords: rows.length
+    });
+  } catch (err) {
+    console.error("Error checking duplicate names:", err);
+    return res.status(500).json({ message: "检查重复名称失败" });
+  }
+});
+
 // Export history as CSV - public endpoint
 router.get("/export", async (req, res) => {
   try {

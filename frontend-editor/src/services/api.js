@@ -93,6 +93,13 @@ export async function fetchTeams() {
   return res.data;
 }
 
+export async function checkDuplicateNames(token) {
+  const res = await axios.get(`${API_BASE}/history/check-duplicate-names`, {
+    headers: authHeaders(token)
+  });
+  return res.data;
+}
+
 // Token alerts (shared table)
 export async function fetchTokenAlerts(token, resolved = false) {
   const res = await axios.get(`${API_BASE}/token-alerts`, {
