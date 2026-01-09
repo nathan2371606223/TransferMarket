@@ -261,7 +261,7 @@ function HistoryManager({ token }) {
             <tbody>
               {history.map((record) =>
                 editingId === record.id ? (
-                  <tr key={record.id} style={{ backgroundColor: record.archived ? "#f5f5f5" : "white" }}>
+                  <tr key={record.id} style={{ backgroundColor: record.archived ? "#e0e0e0" : "white", opacity: record.archived ? 0.8 : 1 }}>
                     <td colSpan={11} style={{ border: "1px solid #ddd", padding: "10px" }}>
                       <div style={{ display: "grid", gridTemplateColumns: "repeat(2, 1fr)", gap: "10px" }}>
                         <div>
@@ -359,7 +359,7 @@ function HistoryManager({ token }) {
                     </td>
                   </tr>
                 ) : (
-                  <tr key={record.id} style={{ backgroundColor: record.archived ? "#f5f5f5" : "white" }}>
+                  <tr key={record.id} style={{ backgroundColor: record.archived ? "#e0e0e0" : "white", opacity: record.archived ? 0.8 : 1 }}>
                     <td style={{ border: "1px solid #ddd", padding: "8px" }}>
                       {new Date(record.created_at).toLocaleString("zh-CN")}
                     </td>
