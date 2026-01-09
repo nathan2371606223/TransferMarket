@@ -6,6 +6,7 @@ import HistoryManager from "./components/HistoryManager";
 import ExportButtons from "./components/ExportButtons";
 import FormattedRecords from "./components/FormattedRecords";
 import TokenAlerts from "./components/TokenAlerts";
+import Announcement from "./components/Announcement";
 
 function App() {
   const [token, setToken] = useState(null);
@@ -157,10 +158,11 @@ function App() {
         </div>
       )}
 
+      <Announcement token={token} />
       {activeTab === "applications" && (
         <>
-          <ApplicationList 
-            token={token} 
+          <ApplicationList
+            token={token}
             onApproval={(formatted, application) => {
               const newRecords = [...formattedRecords, { formatted, application, timestamp: new Date().toISOString() }];
               updateFormattedRecords(newRecords);

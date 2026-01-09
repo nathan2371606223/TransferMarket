@@ -3,6 +3,7 @@ import ApplicationForm from "./components/ApplicationForm";
 import HistoryViewer from "./components/HistoryViewer";
 import MyApplications from "./components/MyApplications";
 import TokenGate from "./components/TokenGate";
+import Announcement from "./components/Announcement";
 import { getStoredToken, setStoredToken } from "./services/api";
 
 function App() {
@@ -34,6 +35,7 @@ function App() {
 
   return (
     <div>
+      <Announcement />
       <nav style={{ backgroundColor: "#333", color: "white", padding: "10px 20px" }}>
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
           <div style={{ display: "flex", gap: "20px" }}>

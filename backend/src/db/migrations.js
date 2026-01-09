@@ -112,6 +112,21 @@ async function runMigrations() {
       );
     }
   }
+
+  // Create announcement table for TransferMarket
+  await pool.query(`
+    CREATE TABLE IF NOT EXISTS tm_announcement (
+      id SERIAL PRIMARY KEY,
+      content TEXT,
+      updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+    );
+  `);
+
+  // Initialize with empty announcement if none exists
+  const { rows: existingAnnouncement } = await pool.query("SELECT id FROM tm_announcement LIMIT 1");
+  if (existingAnnouncement.length === 0) {
+    await pool.query("INSERT INTO tm_announcement (content) VALUES ('')");
+  }
 }
 
 module.exports = { runMigrations };

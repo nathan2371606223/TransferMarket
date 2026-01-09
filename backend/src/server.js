@@ -6,6 +6,7 @@ const applicationsRoutes = require("./routes/applications");
 const historyRoutes = require("./routes/history");
 const teamsRoutes = require("./routes/teams");
 const tokenAlertsRoutes = require("./routes/tokenAlerts");
+const announcementRoutes = require("./routes/announcement");
 const { runMigrations } = require("./db/migrations");
 
 const app = express();
@@ -37,6 +38,7 @@ app.use("/api/applications", applicationsRoutes);
 app.use("/api/history", historyRoutes);
 app.use("/api/teams", teamsRoutes);
 app.use("/api/token-alerts", tokenAlertsRoutes);
+app.use("/api/announcement", announcementRoutes);
 
 const start = async () => {
   await runMigrations();
