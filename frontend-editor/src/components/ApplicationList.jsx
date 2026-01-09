@@ -338,6 +338,8 @@ function ApplicationList({ token, onApproval }) {
                   </tr>
                 </>
               )}
+                </React.Fragment>
+              );
             })}
           </tbody>
         </table>
