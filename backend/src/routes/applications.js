@@ -285,7 +285,7 @@ router.post("/:id/approve", authMiddleware, async (req, res) => {
         
         for (const team of teamsToCheck) {
           const currentCount = teamCounts[team] || 0;
-          if (currentCount >= 20) {
+          if (currentCount > 20) {
             exceededTeams.push({ team, currentCount });
           }
         }
@@ -295,7 +295,7 @@ router.post("/:id/approve", authMiddleware, async (req, res) => {
           return res.status(400).json({
             message: "球队数量限制警告",
             exceededTeams: exceededTeams,
-            warning: `批准此申请将使以下球队的转会记录数达到或超过20条：${exceededTeams.map(t => `${t.team}(${t.currentCount})`).join(", ")}。是否继续？`,
+            warning: `批准此申请将使以下球队的转会记录数超过20条：${exceededTeams.map(t => `${t.team}(${t.currentCount})`).join(", ")}。是否继续？`,
             requiresConfirmation: true
           });
         }
