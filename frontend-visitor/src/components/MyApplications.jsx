@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { fetchApplications, updateApplication } from "../services/api";
 
-function MyApplications() {
+function MyApplications({ onAuthError }) {
   const [applications, setApplications] = useState([]);
   const [loading, setLoading] = useState(false);
   const [editingId, setEditingId] = useState(null);
@@ -24,15 +24,17 @@ function MyApplications() {
 
     setLoading(true);
     try {
-      // Fetch all pending applications (public endpoint)
       const allApplications = await fetchApplications();
-      // Filter to only show my pending applications
       const myApplications = allApplications.filter(
         app => myIds.includes(app.id) && app.status === "pending"
       );
       setApplications(myApplications);
     } catch (err) {
-      setMessage({ type: "error", text: err.response?.data?.message || "加载失败" });
+      if (err.response?.status === 401 || err.response?.status === 403) {
+        onAuthError && onAuthError();
+      } else {
+        setMessage({ type: "error", text: err.response?.data?.message || "加载失败" });
+      }
     } finally {
       setLoading(false);
     }
@@ -70,7 +72,11 @@ function MyApplications() {
       setEditingId(null);
       loadApplications();
     } catch (err) {
-      setMessage({ type: "error", text: err.response?.data?.message || "更新失败" });
+      if (err.response?.status === 401 || err.response?.status === 403) {
+        onAuthError && onAuthError();
+      } else {
+        setMessage({ type: "error", text: err.response?.data?.message || "更新失败" });
+      }
     }
   };
 

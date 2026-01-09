@@ -2,7 +2,7 @@ import React, { useState, useEffect } from "react";
 import { submitApplications, fetchTeams } from "../services/api";
 import TeamSelector from "./TeamSelector";
 
-function ApplicationForm() {
+function ApplicationForm({ onAuthError }) {
   const [applications, setApplications] = useState([
     { player1: "", player2: "", player3: "", player4: "", team_out: "", team_in: "", price: "", remarks: "" }
   ]);
@@ -20,7 +20,11 @@ function ApplicationForm() {
         const data = await fetchTeams();
         setTeamsByLevel(data);
       } catch (err) {
-        setMessage({ type: "error", text: "加载球队列表失败" });
+        if (err.response?.status === 401 || err.response?.status === 403) {
+          onAuthError && onAuthError();
+        } else {
+          setMessage({ type: "error", text: "加载球队列表失败" });
+        }
       } finally {
         setLoadingTeams(false);
       }
@@ -108,7 +112,11 @@ function ApplicationForm() {
         ]);
       }
     } catch (err) {
-      setMessage({ type: "error", text: err.response?.data?.message || "提交失败" });
+      if (err.response?.status === 401 || err.response?.status === 403) {
+        onAuthError && onAuthError();
+      } else {
+        setMessage({ type: "error", text: err.response?.data?.message || "提交失败" });
+      }
     } finally {
       setSubmitting(false);
     }
@@ -147,7 +155,11 @@ function ApplicationForm() {
         { player1: "", player2: "", player3: "", player4: "", team_out: "", team_in: "", price: "", remarks: "" }
       ]);
     } catch (err) {
-      setMessage({ type: "error", text: err.response?.data?.message || "提交失败" });
+      if (err.response?.status === 401 || err.response?.status === 403) {
+        onAuthError && onAuthError();
+      } else {
+        setMessage({ type: "error", text: err.response?.data?.message || "提交失败" });
+      }
     } finally {
       setSubmitting(false);
     }

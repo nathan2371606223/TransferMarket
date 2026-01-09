@@ -2,7 +2,7 @@ import React, { useState, useEffect } from "react";
 import { fetchHistory, fetchTeams } from "../services/api";
 import TeamSelector from "./TeamSelector";
 
-function HistoryViewer() {
+function HistoryViewer({ onAuthError }) {
   const [history, setHistory] = useState([]);
   const [page, setPage] = useState(1);
   const [total, setTotal] = useState(0);
@@ -26,6 +26,9 @@ function HistoryViewer() {
         }
       } catch (err) {
         console.error("Failed to load teams", err);
+        if (err.response?.status === 401 || err.response?.status === 403) {
+          onAuthError && onAuthError();
+        }
       } finally {
         setLoadingTeams(false);
       }
@@ -54,6 +57,9 @@ function HistoryViewer() {
       setTotal(result.total || 0);
     } catch (err) {
       console.error("Failed to load history", err);
+      if (err.response?.status === 401 || err.response?.status === 403) {
+        onAuthError && onAuthError();
+      }
     } finally {
       setLoading(false);
     }

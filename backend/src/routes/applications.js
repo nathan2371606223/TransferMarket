@@ -1,13 +1,15 @@
 const express = require("express");
 const { pool } = require("../db/connection");
 const { authMiddleware } = require("../middleware/auth");
+const { requireTeamToken } = require("../middleware/teamToken");
 const { checkDuplicates } = require("../utils/duplicateChecker");
 const { formatForBudget } = require("../utils/formatter");
+const { createTokenAlert } = require("../utils/tokenAlerts");
 
 const router = express.Router();
 
-// Submit new application(s) - public endpoint
-router.post("/", async (req, res) => {
+// Submit new application(s) - requires team token
+router.post("/", requireTeamToken, async (req, res) => {
   const applications = req.body?.applications || [];
   const force = req.body?.force || false; // If true, skip duplicate check and submit anyway
   if (!Array.isArray(applications) || applications.length === 0) {
@@ -73,6 +75,25 @@ router.post("/", async (req, res) => {
       );
 
       submitted.push(rows[0]);
+
+      // Token-team involvement check (non-blocking)
+      try {
+        const tokenTeamName = req.tokenTeam?.name || "";
+        const involvedTeams = [team_out, team_in, player1, player2, player3, player4]
+          .filter(Boolean);
+        const matched = involvedTeams.some((t) => t === tokenTeamName);
+        if (!matched) {
+          await createTokenAlert(
+            pool,
+            req.tokenTeam,
+            "transfermarket",
+            { team_out, team_in, price: priceNum, player1, player2, player3, player4, remarks },
+            "提交中未匹配到与令牌对应的球队"
+          );
+        }
+      } catch (err) {
+        console.error("Alert creation failed:", err);
+      }
     }
 
     return res.json({

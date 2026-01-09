@@ -5,6 +5,7 @@ import ApplicationList from "./components/ApplicationList";
 import HistoryManager from "./components/HistoryManager";
 import ExportButtons from "./components/ExportButtons";
 import FormattedRecords from "./components/FormattedRecords";
+import TokenAlerts from "./components/TokenAlerts";
 
 function App() {
   const [token, setToken] = useState(null);
@@ -81,6 +82,18 @@ function App() {
             >
               历史管理
             </button>
+            <button
+              onClick={() => setActiveTab("alerts")}
+              style={{
+                backgroundColor: activeTab === "alerts" ? "#555" : "transparent",
+                color: "white",
+                border: "none",
+                padding: "10px 20px",
+                cursor: "pointer"
+              }}
+            >
+              令牌提醒
+            </button>
           </div>
           <div style={{ display: "flex", gap: "10px" }}>
             <button
@@ -150,6 +163,7 @@ function App() {
           <HistoryManager token={token} />
         </>
       )}
+      {activeTab === "alerts" && <TokenAlerts token={token} />}
     </div>
   );
 }
