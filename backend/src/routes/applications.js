@@ -398,5 +398,23 @@ router.post("/:id/reject", authMiddleware, async (req, res) => {
   }
 });
 
+// Delete application - requires auth
+router.delete("/:id", authMiddleware, async (req, res) => {
+  const id = Number(req.params.id);
+
+  try {
+    const { rows } = await pool.query("SELECT * FROM tm_transfer_applications WHERE id=$1", [id]);
+    if (!rows.length) {
+      return res.status(404).json({ message: "申请未找到" });
+    }
+
+    await pool.query("DELETE FROM tm_transfer_applications WHERE id=$1", [id]);
+    return res.json({ message: "已删除申请" });
+  } catch (err) {
+    console.error(err);
+    return res.status(500).json({ message: "删除失败" });
+  }
+});
+
 module.exports = router;
 

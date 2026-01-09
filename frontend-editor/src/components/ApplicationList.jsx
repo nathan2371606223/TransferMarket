@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { fetchApplications, updateApplication, approveApplication, rejectApplication } from "../services/api";
+import { fetchApplications, updateApplication, approveApplication, rejectApplication, deleteApplication } from "../services/api";
 
 function ApplicationList({ token, onApproval }) {
   const [applications, setApplications] = useState([]);
@@ -77,6 +77,17 @@ function ApplicationList({ token, onApproval }) {
       loadApplications();
     } catch (err) {
       setMessage({ type: "error", text: err.response?.data?.message || "拒绝失败" });
+    }
+  };
+
+  const handleDelete = async (id) => {
+    if (!confirm("确认删除此申请？此操作无法撤销。")) return;
+    try {
+      const result = await deleteApplication(token, id);
+      setMessage({ type: "success", text: result.message || "已删除" });
+      loadApplications();
+    } catch (err) {
+      setMessage({ type: "error", text: err.response?.data?.message || "删除失败" });
     }
   };
 
@@ -270,16 +281,29 @@ function ApplicationList({ token, onApproval }) {
                         <button onClick={() => handleApprove(app.id)} style={{ marginRight: "5px", backgroundColor: "#0c0", color: "white" }}>
                           批准
                         </button>
-                        <button onClick={() => handleReject(app.id)} style={{ backgroundColor: "#c00", color: "white" }}>
+                        <button onClick={() => handleReject(app.id)} style={{ marginRight: "5px", backgroundColor: "#c00", color: "white" }}>
                           拒绝
+                        </button>
+                        <button onClick={() => handleDelete(app.id)} style={{ backgroundColor: "#800", color: "white" }}>
+                          删除
                         </button>
                       </>
                     )}
                     {app.status === "approved" && (
-                      <span style={{ color: "#0c0" }}>已批准</span>
+                      <>
+                        <span style={{ color: "#0c0", marginRight: "10px" }}>已批准</span>
+                        <button onClick={() => handleDelete(app.id)} style={{ backgroundColor: "#800", color: "white" }}>
+                          删除
+                        </button>
+                      </>
                     )}
                     {app.status === "rejected" && (
-                      <span style={{ color: "#c00" }}>已拒绝</span>
+                      <>
+                        <span style={{ color: "#c00", marginRight: "10px" }}>已拒绝</span>
+                        <button onClick={() => handleDelete(app.id)} style={{ backgroundColor: "#800", color: "white" }}>
+                          删除
+                        </button>
+                      </>
                     )}
                   </td>
                 </tr>

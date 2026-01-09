@@ -76,6 +76,13 @@ export async function rejectApplication(token, id) {
   return res.data;
 }
 
+export async function deleteApplication(token, id) {
+  const res = await axios.delete(`${API_BASE}/applications/${id}`, {
+    headers: authHeaders(token)
+  });
+  return res.data;
+}
+
 export async function fetchHistory(token, page = 1, pageSize = 10, team = null) {
   // History endpoint is public, but we can still send token for consistency
   const params = { page, pageSize };
@@ -91,6 +98,13 @@ export async function fetchHistory(token, page = 1, pageSize = 10, team = null) 
 
 export async function updateHistory(token, id, data) {
   const res = await axios.put(`${API_BASE}/history/${id}`, data, {
+    headers: authHeaders(token)
+  });
+  return res.data;
+}
+
+export async function deleteHistory(token, id) {
+  const res = await axios.delete(`${API_BASE}/history/${id}`, {
     headers: authHeaders(token)
   });
   return res.data;

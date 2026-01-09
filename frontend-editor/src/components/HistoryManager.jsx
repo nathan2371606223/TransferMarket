@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { fetchHistory, updateHistory, fetchTeams, checkDuplicateNames } from "../services/api";
+import { fetchHistory, updateHistory, deleteHistory, fetchTeams, checkDuplicateNames } from "../services/api";
 import TeamSelector from "./TeamSelector";
 
 function HistoryManager({ token }) {
@@ -114,6 +114,16 @@ function HistoryManager({ token }) {
   const handleCancelEdit = () => {
     setEditingId(null);
     setEditData({});
+  };
+
+  const handleDelete = async (id) => {
+    if (!confirm("确认删除此历史记录？此操作无法撤销。")) return;
+    try {
+      await deleteHistory(token, id);
+      loadHistory();
+    } catch (err) {
+      alert(err.response?.data?.message || "删除失败");
+    }
   };
 
   const handleCheckDuplicates = async () => {
@@ -363,7 +373,8 @@ function HistoryManager({ token }) {
                     <td style={{ border: "1px solid #ddd", padding: "8px" }}>{record.remarks || ""}</td>
                     <td style={{ border: "1px solid #ddd", padding: "8px" }}>{record.status || ""}</td>
                     <td style={{ border: "1px solid #ddd", padding: "8px" }}>
-                      <button onClick={() => handleEdit(record)}>编辑</button>
+                      <button onClick={() => handleEdit(record)} style={{ marginRight: "5px" }}>编辑</button>
+                      <button onClick={() => handleDelete(record.id)} style={{ backgroundColor: "#800", color: "white" }}>删除</button>
                     </td>
                   </tr>
                 )
