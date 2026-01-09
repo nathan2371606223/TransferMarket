@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { fetchApplications, updateApplication } from "../services/api";
 
-function MyApplications({ onAuthError }) {
+function MyApplications({ onAuthError, refreshTrigger }) {
   const [applications, setApplications] = useState([]);
   const [loading, setLoading] = useState(false);
   const [editingId, setEditingId] = useState(null);
@@ -42,14 +42,14 @@ function MyApplications({ onAuthError }) {
 
   useEffect(() => {
     loadApplications();
-    // Refresh every 30 seconds to check for updates (only when not editing)
-    const interval = setInterval(() => {
-      if (!editingId) {
-        loadApplications();
-      }
-    }, 30000);
-    return () => clearInterval(interval);
-  }, [editingId]);
+  }, []);
+
+  // Refresh when trigger changes (after submission)
+  useEffect(() => {
+    if (refreshTrigger) {
+      loadApplications();
+    }
+  }, [refreshTrigger]);
 
   const handleEdit = (app) => {
     setEditingId(app.id);
@@ -101,10 +101,17 @@ function MyApplications({ onAuthError }) {
 
   return (
     <div style={{ padding: "20px", maxWidth: "1600px", margin: "0 auto" }}>
-      <h1>我的申请</h1>
-      <p style={{ color: "#666", fontSize: "14px", marginBottom: "20px" }}>
-        您可以查看和编辑您提交的待处理申请。已批准或拒绝的申请将不再显示在此处。
-      </p>
+      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "20px" }}>
+        <div>
+          <h1 style={{ margin: 0 }}>我的申请</h1>
+          <p style={{ color: "#666", fontSize: "14px", marginTop: "5px", marginBottom: 0 }}>
+            您可以查看和编辑您提交的待处理申请。已批准或拒绝的申请将不再显示在此处。
+          </p>
+        </div>
+        <button onClick={loadApplications} disabled={loading} style={{ padding: "8px 16px", cursor: loading ? "not-allowed" : "pointer" }}>
+          {loading ? "加载中..." : "刷新"}
+        </button>
+      </div>
 
       {message.text && (
         <div

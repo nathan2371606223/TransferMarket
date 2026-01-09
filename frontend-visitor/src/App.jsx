@@ -10,6 +10,7 @@ function App() {
   const [activeTab, setActiveTab] = useState("submit");
   const [tokenReady, setTokenReady] = useState(!!getStoredToken());
   const [prefillToken, setPrefillToken] = useState("");
+  const [refreshTrigger, setRefreshTrigger] = useState(0);
 
   // Support ?token=...
   useEffect(() => {
@@ -94,8 +95,8 @@ function App() {
         </div>
       </nav>
 
-      {activeTab === "submit" && <ApplicationForm onAuthError={handleAuthError} />}
-      {activeTab === "my-applications" && <MyApplications onAuthError={handleAuthError} />}
+      {activeTab === "submit" && <ApplicationForm onAuthError={handleAuthError} onSubmissionSuccess={() => setRefreshTrigger(prev => prev + 1)} />}
+      {activeTab === "my-applications" && <MyApplications onAuthError={handleAuthError} refreshTrigger={refreshTrigger} />}
       {activeTab === "history" && <HistoryViewer onAuthError={handleAuthError} />}
     </div>
   );

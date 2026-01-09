@@ -2,7 +2,7 @@ import React, { useState, useEffect } from "react";
 import { submitApplications, fetchTeams } from "../services/api";
 import TeamSelector from "./TeamSelector";
 
-function ApplicationForm({ onAuthError }) {
+function ApplicationForm({ onAuthError, onSubmissionSuccess }) {
   const [applications, setApplications] = useState([
     { player1: "", player2: "", player3: "", player4: "", team_out: "", team_in: "", price: "", remarks: "" }
   ]);
@@ -106,6 +106,11 @@ function ApplicationForm({ onAuthError }) {
           localStorage.setItem("my_application_ids", JSON.stringify(updatedIds));
         }
         
+        // Notify parent to refresh MyApplications
+        if (onSubmissionSuccess) {
+          onSubmissionSuccess();
+        }
+        
         // Reset form
         setApplications([
           { player1: "", player2: "", player3: "", player4: "", team_out: "", team_in: "", price: "", remarks: "" }
@@ -148,6 +153,11 @@ function ApplicationForm({ onAuthError }) {
         const newIds = result.details.submitted.map(app => app.id);
         const updatedIds = [...new Set([...myIds, ...newIds])]; // Remove duplicates
         localStorage.setItem("my_application_ids", JSON.stringify(updatedIds));
+      }
+      
+      // Notify parent to refresh MyApplications
+      if (onSubmissionSuccess) {
+        onSubmissionSuccess();
       }
       
       setDuplicateWarning(null);
