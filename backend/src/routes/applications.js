@@ -76,24 +76,26 @@ router.post("/", requireTeamToken, async (req, res) => {
 
       submitted.push(rows[0]);
 
-      // Token-team involvement check (non-blocking)
-      try {
-        const tokenTeamName = req.tokenTeam?.name || "";
-        const involvedTeams = [team_out, team_in, player1, player2, player3, player4]
-          .filter(Boolean);
-        const matched = involvedTeams.some((t) => t === tokenTeamName);
-        if (!matched) {
-          const tokenTeamName = req.tokenTeam?.name || "未知团队";
-          await createTokenAlert(
-            pool,
-            req.tokenTeam,
-            "transfermarket",
-            { team_out, team_in, price: priceNum, player1, player2, player3, player4, remarks },
-            `令牌对应的球队 (${tokenTeamName}) 未在提交中出现`
-          );
+      // Token-team involvement check (non-blocking) - skip for admin users
+      if (!req.isAdmin && req.tokenTeam) {
+        try {
+          const tokenTeamName = req.tokenTeam?.name || "";
+          const involvedTeams = [team_out, team_in, player1, player2, player3, player4]
+            .filter(Boolean);
+          const matched = involvedTeams.some((t) => t === tokenTeamName);
+          if (!matched) {
+            const tokenTeamName = req.tokenTeam?.name || "未知团队";
+            await createTokenAlert(
+              pool,
+              req.tokenTeam,
+              "transfermarket",
+              { team_out, team_in, price: priceNum, player1, player2, player3, player4, remarks },
+              `令牌对应的球队 (${tokenTeamName}) 未在提交中出现`
+            );
+          }
+        } catch (err) {
+          console.error("Alert creation failed:", err);
         }
-      } catch (err) {
-        console.error("Alert creation failed:", err);
       }
     }
 
@@ -143,6 +145,42 @@ router.get("/", async (req, res) => {
 
   try {
     const { rows } = await pool.query(query, params);
+    return res.json(rows);
+  } catch (err) {
+    console.error(err);
+    return res.status(500).json({ message: "获取申请失败" });
+  }
+});
+
+// Get applications for user's team - requires team token or admin JWT
+// Returns all pending applications where the team appears in team_out or team_in
+// For admin users, returns all pending applications
+router.get("/my-team", requireTeamToken, async (req, res) => {
+  try {
+    let rows;
+    if (req.isAdmin) {
+      // Admin users see all pending applications
+      const result = await pool.query(
+        `SELECT * FROM tm_transfer_applications 
+         WHERE status = 'pending'
+         ORDER BY created_at DESC`
+      );
+      rows = result.rows;
+    } else {
+      // Regular users see only their team's applications
+      const teamName = req.tokenTeam?.name;
+      if (!teamName) {
+        return res.status(400).json({ message: "无法识别团队" });
+      }
+      const result = await pool.query(
+        `SELECT * FROM tm_transfer_applications 
+         WHERE status = 'pending' 
+         AND (team_out = $1 OR team_in = $1)
+         ORDER BY created_at DESC`,
+        [teamName]
+      );
+      rows = result.rows;
+    }
     return res.json(rows);
   } catch (err) {
     console.error(err);

@@ -8,7 +8,10 @@ import { getStoredToken, setStoredToken } from "./services/api";
 
 function App() {
   const [activeTab, setActiveTab] = useState("submit");
-  const [tokenReady, setTokenReady] = useState(!!getStoredToken());
+  // Check for admin token (JWT) first, then team token
+  const adminToken = localStorage.getItem("token"); // JWT token from editor login
+  const teamToken = getStoredToken(); // Team token
+  const [tokenReady, setTokenReady] = useState(!!(adminToken || teamToken));
   const [prefillToken, setPrefillToken] = useState("");
   const [refreshTrigger, setRefreshTrigger] = useState(0);
 
@@ -27,7 +30,10 @@ function App() {
   };
 
   const handleAuthError = () => {
-    setTokenReady(false);
+    // Only require team token if admin token is not present
+    if (!adminToken) {
+      setTokenReady(false);
+    }
   };
 
   if (!tokenReady) {

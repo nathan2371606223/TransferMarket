@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { fetchApplications, updateApplication } from "../services/api";
+import { fetchMyTeamApplications, updateApplication } from "../services/api";
 
 function MyApplications({ onAuthError, refreshTrigger }) {
   const [applications, setApplications] = useState([]);
@@ -8,27 +8,12 @@ function MyApplications({ onAuthError, refreshTrigger }) {
   const [editData, setEditData] = useState({});
   const [message, setMessage] = useState({ type: "", text: "" });
 
-  // Get submitted application IDs from localStorage
-  const getMyApplicationIds = () => {
-    const stored = localStorage.getItem("my_application_ids");
-    return stored ? JSON.parse(stored) : [];
-  };
-
-  // Load applications
+  // Load applications for user's team (where team appears in team_out or team_in)
   const loadApplications = async () => {
-    const myIds = getMyApplicationIds();
-    if (myIds.length === 0) {
-      setApplications([]);
-      return;
-    }
-
     setLoading(true);
     try {
-      const allApplications = await fetchApplications();
-      const myApplications = allApplications.filter(
-        app => myIds.includes(app.id) && app.status === "pending"
-      );
-      setApplications(myApplications);
+      const teamApplications = await fetchMyTeamApplications();
+      setApplications(teamApplications);
     } catch (err) {
       if (err.response?.status === 401 || err.response?.status === 403) {
         onAuthError && onAuthError();
@@ -124,7 +109,9 @@ function MyApplications({ onAuthError, refreshTrigger }) {
         <div>
           <h1 style={{ margin: 0 }}>我的申请</h1>
           <p style={{ color: "#666", fontSize: "14px", marginTop: "5px", marginBottom: 0 }}>
-            您可以查看和编辑您提交的待处理申请。已批准或拒绝的申请将不再显示在此处。
+            {localStorage.getItem("token") 
+              ? "管理员模式：显示所有待处理申请。已批准或拒绝的申请将不再显示在此处。"
+              : "显示所有包含您所在球队的待处理申请（转出或转入）。已批准或拒绝的申请将不再显示在此处。"}
           </p>
         </div>
         <button onClick={loadApplications} disabled={loading} style={{ padding: "8px 16px", cursor: loading ? "not-allowed" : "pointer" }}>

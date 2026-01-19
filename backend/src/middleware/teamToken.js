@@ -2,6 +2,24 @@ const { pool } = require("../db/connection");
 const jwt = require("jsonwebtoken");
 
 async function requireTeamToken(req, res, next) {
+  // Check for JWT token first (admin token from editor login)
+  const authHeader = req.headers.authorization || "";
+  const jwtToken = authHeader.startsWith("Bearer ") ? authHeader.substring(7) : null;
+  
+  if (jwtToken) {
+    try {
+      const JWT_SECRET = process.env.JWT_SECRET || "dev-secret";
+      jwt.verify(jwtToken, JWT_SECRET);
+      // JWT is valid - admin access, skip team token requirement
+      req.isAdmin = true;
+      req.user = jwt.verify(jwtToken, JWT_SECRET);
+      return next();
+    } catch (err) {
+      // JWT invalid, fall through to check team token
+    }
+  }
+
+  // Check for team token (visitor authentication)
   const token =
     req.headers["x-team-token"] ||
     req.query?.token ||
@@ -26,6 +44,7 @@ async function requireTeamToken(req, res, next) {
       name: rows[0].team_name,
       token: rows[0].token
     };
+    req.isAdmin = false;
     next();
   } catch (err) {
     console.error("Token validation failed:", err);
@@ -33,17 +52,19 @@ async function requireTeamToken(req, res, next) {
   }
 }
 
-// Optional auth: accepts either JWT (for editors) or team token (for visitors)
+// Optional auth: accepts either JWT (for editors/admin) or team token (for visitors)
 async function optionalAuth(req, res, next) {
-  // Check for JWT token first (editor authentication)
+  // Check for JWT token first (editor/admin authentication)
   const authHeader = req.headers.authorization || "";
   const jwtToken = authHeader.startsWith("Bearer ") ? authHeader.substring(7) : null;
   
   if (jwtToken) {
     try {
       const JWT_SECRET = process.env.JWT_SECRET || "dev-secret";
-      jwt.verify(jwtToken, JWT_SECRET);
-      // JWT is valid, proceed without team token
+      const payload = jwt.verify(jwtToken, JWT_SECRET);
+      // JWT is valid - admin access
+      req.isAdmin = true;
+      req.user = payload;
       return next();
     } catch (err) {
       // JWT invalid, fall through to check team token
@@ -70,6 +91,7 @@ async function optionalAuth(req, res, next) {
           name: rows[0].team_name,
           token: rows[0].token
         };
+        req.isAdmin = false;
         return next();
       }
     } catch (err) {

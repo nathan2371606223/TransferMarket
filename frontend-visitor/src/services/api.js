@@ -19,10 +19,18 @@ export function setStoredToken(token) {
 
 const client = axios.create({ baseURL: API_BASE });
 client.interceptors.request.use((config) => {
-  const token = getStoredToken();
-  if (token) {
+  // Check for admin token (JWT) first, then fall back to team token
+  const adminToken = localStorage.getItem("token"); // JWT token from editor login
+  const teamToken = getStoredToken(); // Team token
+  
+  if (adminToken) {
+    // Admin token takes precedence
     config.headers = config.headers || {};
-    config.headers["X-Team-Token"] = token;
+    config.headers["Authorization"] = `Bearer ${adminToken}`;
+  } else if (teamToken) {
+    // Fall back to team token
+    config.headers = config.headers || {};
+    config.headers["X-Team-Token"] = teamToken;
   }
   return config;
 });
@@ -41,6 +49,11 @@ export async function submitApplications(applications, force = false) {
 
 export async function fetchApplications() {
   const res = await client.get(`/applications`);
+  return res.data;
+}
+
+export async function fetchMyTeamApplications() {
+  const res = await client.get(`/applications/my-team`);
   return res.data;
 }
 
